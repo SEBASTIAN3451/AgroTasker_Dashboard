@@ -1,0 +1,191 @@
+/* Sección de Predicciones */
+.predictions-section {
+    background-color: var(--color-surface);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px var(--color-card-shadow);
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: start;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: var(--color-background);
+    border-radius: 8px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.recommendation-item .material-icons {
+    color: var(--color-primary);
+    font-size: 1.5rem;
+}
+
+.recommendation-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--color-primary);
+}
+
+.recommendation-content p {
+    margin: 0;
+    color: var(--color-text);
+    opacity: 0.8;
+}
+
+/* Control de Riego */
+.irrigation-control-section {
+    background-color: var(--color-surface);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px var(--color-card-shadow);
+}
+
+.irrigation-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+#irrigation-toggle {
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+}
+
+#irrigation-toggle.active {
+    background-color: var(--color-error);
+}
+
+.irrigation-schedule {
+    background-color: var(--color-background);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.schedule-form {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.schedule-days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.schedule-days label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.schedule-item {
+    background-color: var(--color-surface);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px var(--color-card-shadow);
+    animation: slideIn 0.3s ease-out;
+}
+
+.schedule-item.active {
+    border-left: 4px solid var(--color-success);
+}
+
+.schedule-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.schedule-time {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.schedule-toggle, .schedule-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.schedule-toggle:hover, .schedule-delete:hover {
+    opacity: 1;
+}
+
+.schedule-delete:hover {
+    color: var(--color-error);
+}
+
+.schedule-details {
+    display: flex;
+    gap: 1rem;
+    color: var(--color-text);
+    opacity: 0.8;
+}
+
+/* Panel de Notificaciones */
+.notifications-section {
+    background-color: var(--color-surface);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px var(--color-card-shadow);
+}
+
+.notification-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    background-color: var(--color-background);
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.notification-title {
+    font-weight: bold;
+    flex-grow: 1;
+}
+
+.notification-time {
+    color: var(--color-text);
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+.notification-body {
+    color: var(--color-text);
+    opacity: 0.9;
+}
+
+/* Tipos de Notificación */
+.notification-item.error .material-icons {
+    color: var(--color-error);
+}
+
+.notification-item.warning .material-icons {
+    color: var(--color-warning);
+}
+
+.notification-item.success .material-icons {
+    color: var(--color-success);
+}
+
+.notification-item.info .material-icons {
+    color: var(--color-primary);
+}

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SamarIA SmartLab - AgroTasker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 40px;
+            color: white;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            width: 50px; height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 20px;
+        }
+        
+        .header-title h1 { 
+            font-size: 36px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header-title p { 
+            font-size: 18px;
+            opacity: 0.95;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: -30px auto 0;
+            padding: 0 40px 80px;
+        }
+        
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .section-title {
+            font-size: 22px;
+            color: #2d3748;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .sensors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .sensor-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+            display: block;
+        }
+        
+        .sensor-card.hidden {
+            display: none;
+        }
+        
+        .sensor-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #00A3FF;
+        }
+        
+        .sensor-card.updating {
+            animation: pulse-update 0.5s ease;
+        }
+        
+        @keyframes pulse-update {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+            @keyframes fadeIn {
+                from { opacity: 0.3; }
+                to { opacity: 1; }
+            }
+        
+        .sensor-card h3 {
+            color: #4a5568;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .sensor-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #00A3FF;
+            margin-bottom: 15px;
+        }
+        
+        .chart-container {
+            height: 120px;
+            position: relative;
+        }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: white;
+            padding: 12px 40px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .status-indicator::before {
+            content: '';
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            display: block;
+        }
+        
+        .status-success::before {
+            background: #48bb78;
+            box-shadow: 0 0 8px #48bb78;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-error::before { background: #f56565; }
+        .status-warning::before { background: #ed8936; }
+        
+        #last-update {
+            color: #718096;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header con gradiente -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🌱</div>
+            <div class="header-title">
+                <h1>AgroTasker - Monitoreo en Tiempo Real</h1>
+                <p>🥭 Sistema Inteligente de Cultivo de Mango | Tecnología IoT</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="container">
+
+    <div class="section">
+        <h2 class="section-title">📊 Estación Edáfica - Suelo</h2>
+        <div class="sensors-grid">
+            <div class="sensor-card">
+                <h3>💧 Humedad Suelo</h3>
+                <div class="sensor-value" id="value-humedad-suelo">--</div>
+                <div class="chart-container"><canvas id="chart-humedad-suelo"></canvas></div>
+            </div>
+            <div class="sensor-card">
+                <h3>🌡️ Temp. Suelo</h3>
+                <div class="sensor-value" id="value-temp-suelo">--</div>
+                <div class="chart-container"><canvas id="chart-temp-suelo"></canvas></div>
+            </div>
+            <div class="sensor-card">
+                <h3>⚗️ pH Suelo</h3>
+                <div class="sensor-value" id="value-ph-suelo">--</div>
+                <div class="chart-container"><canvas id="chart-ph-suelo"></canvas></div>
+            </div>
+            <div class="sensor-card">
+                <h3>⚡ Conductividad</h3>
+                <div class="sensor-value" id="value-conductividad">--</div>
+                <div class="chart-container"><canvas id="chart-conductividad"></canvas></div>
+            </div>
+            <div class="sensor-card">
+                <h3>🌿 Nitrógeno (N)</h3>
+                <div class="sensor-value" id="value-nitrogeno">--</div>
+            </div>
+            <div class="sensor-card">
+                <h3>🌿 Fósforo (P)</h3>
+                <div class="sensor-value" id="value-fosforo">--</div>
+            </div>
+            <div class="sensor-card">
+                <h3>🌿 Potasio (K)</h3>
+                <div class="sensor-value" id="value-potasio">--</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">🌦️ Estación Meteorológica</h2>
+        <div class="sensors-grid">
+            <div class="sensor-card">
+                <h3>💨 Dirección Viento</h3>
+                <div class="sensor-value" id="value-viento-direccion">--</div>
+            </div>
+            <div class="sensor-card">
+                <h3>💨 Velocidad Viento</h3>
+                <div class="sensor-value" id="value-viento-velocidad">--</div>
+            </div>
+            <div class="sensor-card">
+                <h3>🌧️ Precipitación</h3>
+                <div class="sensor-value" id="value-precipitacion">--</div>
+                <div class="chart-container"><canvas id="chart-precipitacion"></canvas></div>
+            </div>
+            <div class="sensor-card">
+                <h3>🌡️ Temp. Aire</h3>
+                <div class="sensor-value" id="value-temp-aire">--</div>
+                <div class="chart-container"><canvas id="chart-temp-aire"></canvas></div>
+            </div>
+            <div class="sensor-card">
+                <h3>💧 Humedad Aire</h3>
+                <div class="sensor-value" id="value-humedad-aire">--</div>
+                <div class="chart-container"><canvas id="chart-humedad-aire"></canvas></div>
+            </div>
+            <div class="sensor-card">
+                <h3>📊 Presión Atmosférica</h3>
+                <div class="sensor-value" id="value-presion">--</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">🌍 Potencial Mátrico y UV</h2>
+        <div class="sensors-grid">
+            <div class="sensor-card">
+                <h3>📉 Resistencia 30cm</h3>
+                <div class="sensor-value" id="value-resistencia-30cm">--</div>
+                <div class="chart-container"><canvas id="chart-resistencia-30cm"></canvas></div>
+            </div>
+            <div class="sensor-card">
+                <h3>📉 Resistencia 60cm</h3>
+                <div class="sensor-value" id="value-resistencia-60cm">--</div>
+                <div class="chart-container"><canvas id="chart-resistencia-60cm"></canvas></div>
+            </div>
+            <div class="sensor-card">
+                <h3>☀️ Índice UV</h3>
+                <div class="sensor-value" id="value-uv-index">--</div>
+                <div class="chart-container"><canvas id="chart-uv-index"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de estado -->
+    <div class="status-bar">
+        <div class="status-indicator status-warning" id="connection-status">Conectando...</div>
+        <div id="last-update">Esperando datos...</div>
+    </div>
+
+    <script>
+        let charts = {};
+        let updateInterval;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard inicializado');
+            initCharts();
+            fetchAllData();
+            updateInterval = setInterval(fetchAllData, 10000); // 10 segundos
+        });
+
+        function initCharts() {
+            const config = {
+                type: 'line',
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: false } },
+                    plugins: { legend: { display: false } }
+                }
+            };
+
+            ['humedad-suelo', 'temp-suelo', 'ph-suelo', 'conductividad',
+             'temp-aire', 'humedad-aire', 'precipitacion',
+             'resistencia-30cm', 'resistencia-60cm', 'uv-index'].forEach(id => {
+                const canvas = document.getElementById(`chart-${id}`);
+                if (canvas) {
+                    charts[id] = new Chart(canvas, {
+                        ...config,
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                data: [],
+                                borderColor: '#00A3FF',
+                                backgroundColor: 'rgba(0, 163, 255, 0.1)',
+                                tension: 0.4
+                            }]
+                        }
+                    });
+                }
+            });
+        }
+
+        async function fetchAllData() {
+            console.log('Obteniendo datos...');
+            updateStatus('Actualizando...', 'warning');
+
+            try {
+                const [soil, weather, matric] = await Promise.all([
+                    fetch('/api/thingspeak/soil').then(r => r.json()),
+                    fetch('/api/thingspeak/weather').then(r => r.json()),
+                    fetch('/api/thingspeak/matric_uv').then(r => r.json())
+                ]);
+
+                console.log('Datos:', { soil, weather, matric });
+
+                if (soil.feeds && soil.feeds.length > 0) processSoil(soil);
+                if (weather.feeds && weather.feeds.length > 0) processWeather(weather);
+                if (matric.feeds && matric.feeds.length > 0) processMatric(matric);
+
+                document.getElementById('last-update').textContent = 
+                    `Última actualización: ${new Date().toLocaleTimeString('es-MX')}`;
+                updateStatus('Conectado', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                updateStatus('Error de conexión', 'error');
+            }
+        }
+
+        function processSoil(data) {
+            const feeds = data.feeds.slice(-10);
+            updateSensor('humedad-suelo', feeds.map(f => parseFloat(f.field1)), feeds.map(f => f.created_at), '%');
+            updateSensor('temp-suelo', feeds.map(f => parseFloat(f.field2)), feeds.map(f => f.created_at), '°C');
+            updateSensor('ph-suelo', feeds.map(f => parseFloat(f.field3)), feeds.map(f => f.created_at), '');
+            updateSensor('conductividad', feeds.map(f => parseFloat(f.field4)), feeds.map(f => f.created_at), 'µS/cm');
+            updateValueOnly('nitrogeno', feeds[feeds.length - 1].field5, 'mg/kg');
+            updateValueOnly('fosforo', feeds[feeds.length - 1].field6, 'mg/kg');
+            updateValueOnly('potasio', feeds[feeds.length - 1].field7, 'mg/kg');
+        }
+
+        function processWeather(data) {
+            const feeds = data.feeds.slice(-10);
+            updateValueOnly('viento-direccion', feeds[feeds.length - 1].field1, '°');
+            updateValueOnly('viento-velocidad', feeds[feeds.length - 1].field2, 'km/h');
+            updateSensor('precipitacion', feeds.map(f => parseFloat(f.field3)), feeds.map(f => f.created_at), 'mm');
+            updateSensor('temp-aire', feeds.map(f => parseFloat(f.field4)), feeds.map(f => f.created_at), '°C');
+            updateSensor('humedad-aire', feeds.map(f => parseFloat(f.field5)), feeds.map(f => f.created_at), '%');
+            updateValueOnly('presion', feeds[feeds.length - 1].field6, 'hPa');
+        }
+
+        function processMatric(data) {
+            const feeds = data.feeds.slice(-10);
+            updateSensor('resistencia-30cm', feeds.map(f => parseFloat(f.field1)), feeds.map(f => f.created_at), 'kΩ');
+            updateSensor('resistencia-60cm', feeds.map(f => parseFloat(f.field2)), feeds.map(f => f.created_at), 'kΩ');
+            updateSensor('uv-index', feeds.map(f => parseFloat(f.field3)), feeds.map(f => f.created_at), '');
+        }
+
+        function updateSensor(id, values, times, unit) {
+            const valid = values.map((v, i) => ({ value: v, time: times[i] }))
+                                   .filter(d => !isNaN(d.value) && d.value !== 0);
+            
+                const card = document.getElementById(`value-${id}`)?.closest('.sensor-card');
+            
+                if (valid.length === 0 || valid.every(d => d.value === 0)) {
+                    if (card) card.classList.add('hidden');
+                    return;
+                }
+            
+                if (card) {
+                    card.classList.remove('hidden');
+                    card.classList.add('updating');
+                    setTimeout(() => card.classList.remove('updating'), 500);
+                }
+
+                const last = valid[valid.length - 1].value;
+                const el = document.getElementById(`value-${id}`);
+                if (el) {
+                    el.style.animation = 'none';
+                    setTimeout(() => {
+                        el.textContent = last.toFixed(2) + ' ' + unit;
+                        el.style.animation = 'fadeIn 0.5s ease';
+                    }, 10);
+                }
+
+            if (charts[id]) {
+                const labels = valid.map(d => new Date(d.time).toLocaleTimeString('es-MX', { 
+                    hour: '2-digit', minute: '2-digit' 
+                }));
+                charts[id].data.labels = labels;
+                charts[id].data.datasets[0].data = valid.map(d => d.value);
+                charts[id].update('none');
+            }
+        }
+
+        function updateValueOnly(id, value, unit) {
+            const el = document.getElementById(`value-${id}`);
+                const card = el?.closest('.sensor-card');
+            
+            if (el && value !== null && value !== undefined) {
+                const num = parseFloat(value);
+                
+                    if (isNaN(num) || num === 0) {
+                        if (card) card.classList.add('hidden');
+                        return;
+                    }
+                
+                    if (card) {
+                        card.classList.remove('hidden');
+                        card.classList.add('updating');
+                        setTimeout(() => card.classList.remove('updating'), 500);
+                    }
+                
+                    el.style.animation = 'none';
+                    setTimeout(() => {
+                        el.textContent = num.toFixed(2) + ' ' + unit;
+                        el.style.animation = 'fadeIn 0.5s ease';
+                    }, 10);
+            }
+        }
+
+        function updateStatus(message, status) {
+            const el = document.getElementById('connection-status');
+            if (el) {
+                el.textContent = message;
+                el.className = `status-indicator status-${status}`;
+            }
+        }
+    </script>
+</body>
+</html>

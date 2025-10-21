@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroTasker Dashboard - SamarIA SmartLab</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="https://samaria-smartlab.ai/logo.png" alt="SamarIA SmartLab">
+            </div>
+            <div class="nav-links">
+                <a href="#">Servicios</a>
+                <a href="#">Capacitación</a>
+                <a href="#">Certificados</a>
+                <a href="#">Contacto</a>
+                <a href="#" class="lang-switch">EN</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Monitoreo de Cultivo</h1>
+        
+        <div class="dashboard-grid">
+            <!-- Panel de pH -->
+            <div class="sensor-panel">
+                <h2>pH del Suelo</h2>
+                <div class="current-value" id="ph-value">--</div>
+                <canvas id="ph-chart"></canvas>
+            </div>
+
+            <!-- Panel de Temperatura -->
+            <div class="sensor-panel">
+                <h2>Temperatura</h2>
+                <div class="current-value" id="temp-value">--°C</div>
+                <canvas id="temp-chart"></canvas>
+            </div>
+
+            <!-- Panel de Humedad -->
+            <div class="sensor-panel">
+                <h2>Humedad del Suelo</h2>
+                <div class="current-value" id="humidity-value">--%</div>
+                <canvas id="humidity-chart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

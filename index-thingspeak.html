@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SamarIA SmartLab - AgroTasker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: #00A3FF;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .header-title {
+            flex: 1;
+        }
+
+        .header-title h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header-title p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 24px;
+            color: #00A3FF;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sensors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .sensor-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #00A3FF;
+        }
+
+        .sensor-card h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sensor-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00A3FF;
+            margin-bottom: 15px;
+        }
+
+        .chart-container {
+            height: 150px;
+            position: relative;
+        }
+
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .status-indicator::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .status-success::before {
+            background: #28a745;
+            box-shadow: 0 0 10px #28a745;
+        }
+
+        .status-error::before {
+            background: #dc3545;
+        }
+
+        .status-warning::before {
+            background: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🌱</div>
+        <div class="header-title">
+            <h1>SamarIA SmartLab - AgroTasker</h1>
+            <p>🥭 Monitoreo Completo - Cultivo de Mango</p>
+        </div>
+    </div>
+
+    <!-- Sección 1: Estación Edáfica (Suelo) -->
+    <div class="section">
+        <h2 class="section-title">📊 Estación Edáfica - Suelo</h2>
+        <div class="sensors-grid">
+            <div class="sensor-card">
+                <h3>💧 Humedad Suelo</h3>
+                <div class="sensor-value" id="value-humedad-suelo">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-humedad-suelo"></canvas>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>🌡️ Temp. Suelo</h3>
+                <div class="sensor-value" id="value-temp-suelo">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-temp-suelo"></canvas>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>⚗️ pH Suelo</h3>
+                <div class="sensor-value" id="value-ph-suelo">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-ph-suelo"></canvas>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>⚡ Conductividad</h3>
+                <div class="sensor-value" id="value-conductividad">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-conductividad"></canvas>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>🌿 Nitrógeno (N)</h3>
+                <div class="sensor-value" id="value-nitrogeno">--</div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>🌿 Fósforo (P)</h3>
+                <div class="sensor-value" id="value-fosforo">--</div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>🌿 Potasio (K)</h3>
+                <div class="sensor-value" id="value-potasio">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección 2: Estación Meteorológica -->
+    <div class="section">
+        <h2 class="section-title">🌦️ Estación Meteorológica</h2>
+        <div class="sensors-grid">
+            <div class="sensor-card">
+                <h3>💨 Dirección Viento</h3>
+                <div class="sensor-value" id="value-viento-direccion">--</div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>💨 Velocidad Viento</h3>
+                <div class="sensor-value" id="value-viento-velocidad">--</div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>🌧️ Precipitación</h3>
+                <div class="sensor-value" id="value-precipitacion">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-precipitacion"></canvas>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>🌡️ Temp. Aire</h3>
+                <div class="sensor-value" id="value-temp-aire">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-temp-aire"></canvas>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>💧 Humedad Aire</h3>
+                <div class="sensor-value" id="value-humedad-aire">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-humedad-aire"></canvas>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>📊 Presión Atmosférica</h3>
+                <div class="sensor-value" id="value-presion">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección 3: Potencial Mátrico y UV -->
+    <div class="section">
+        <h2 class="section-title">🌍 Potencial Mátrico y UV</h2>
+        <div class="sensors-grid">
+            <div class="sensor-card">
+                <h3>📉 Resistencia 30cm</h3>
+                <div class="sensor-value" id="value-resistencia-30cm">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-resistencia-30cm"></canvas>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>📉 Resistencia 60cm</h3>
+                <div class="sensor-value" id="value-resistencia-60cm">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-resistencia-60cm"></canvas>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <h3>☀️ Índice UV</h3>
+                <div class="sensor-value" id="value-uv-index">--</div>
+                <div class="chart-container">
+                    <canvas id="chart-uv-index"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-indicator status-warning" id="connection-status">
+            Conectando...
+        </div>
+        <div id="last-update">Esperando datos...</div>
+    </div>
+
+    <script src="js/app-proxy.js"></script>
+</body>
+</html>

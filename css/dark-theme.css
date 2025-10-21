@@ -1,0 +1,181 @@
+/* Theme Variables */
+[data-theme="dark"] {
+    /* Color Palette */
+    --color-primary: #64B5F6;
+    --color-primary-light: #90CAF9;
+    --color-primary-dark: #42A5F5;
+    --color-secondary: #81C784;
+    --color-secondary-light: #A5D6A7;
+    --color-accent: #FF80AB;
+    
+    /* Background Colors */
+    --color-background: #121212;
+    --color-surface: #1E1E1E;
+    --color-surface-variant: #2D2D2D;
+    --color-overlay: rgba(0, 0, 0, 0.5);
+    
+    /* Text Colors */
+    --color-text: #FFFFFF;
+    --color-text-secondary: rgba(255, 255, 255, 0.7);
+    --color-text-disabled: rgba(255, 255, 255, 0.5);
+    
+    /* Status Colors */
+    --color-success: #66BB6A;
+    --color-warning: #FFA726;
+    --color-error: #EF5350;
+    --color-info: #42A5F5;
+    
+    /* Border Colors */
+    --color-border: rgba(255, 255, 255, 0.12);
+    --color-border-light: rgba(255, 255, 255, 0.08);
+    
+    /* Shadow Colors */
+    --color-shadow: rgba(0, 0, 0, 0.3);
+    --color-card-shadow: rgba(0, 0, 0, 0.4);
+}
+
+/* Dark Theme Specific Styles */
+[data-theme="dark"] .nav {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .glass {
+    background: rgba(30, 30, 30, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .form-input {
+    background-color: var(--color-surface-variant);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .form-input:focus {
+    border-color: var(--color-primary);
+    background-color: var(--color-surface);
+}
+
+[data-theme="dark"] .btn {
+    background-color: var(--color-surface-variant);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+}
+
+[data-theme="dark"] .stats-card {
+    background-color: var(--color-surface-variant);
+}
+
+[data-theme="dark"] .chart-container {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .notification-item {
+    background-color: var(--color-surface-variant);
+    border: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .schedule-item {
+    background-color: var(--color-surface-variant);
+    border: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .modal-content {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .status-indicator {
+    background-color: var(--color-surface-variant);
+}
+
+[data-theme="dark"] .status-indicator.connected {
+    background-color: var(--color-success);
+}
+
+[data-theme="dark"] .status-indicator.disconnected {
+    background-color: var(--color-error);
+}
+
+/* Dark Theme Charts */
+[data-theme="dark"] .chart-container canvas {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* Dark Theme Scrollbar */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--color-surface-variant);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+}
+
+/* Dark Theme Tables */
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] tr:hover {
+    background-color: var(--color-surface-variant);
+}
+
+/* Dark Theme Form Elements */
+[data-theme="dark"] select {
+    background-color: var(--color-surface-variant);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] select:focus {
+    border-color: var(--color-primary);
+}
+
+[data-theme="dark"] input[type="checkbox"] {
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] input[type="checkbox"]:checked {
+    background-color: var(--color-primary);
+}
+
+/* Dark Theme Alerts */
+[data-theme="dark"] .alert {
+    background-color: var(--color-surface-variant);
+}
+
+[data-theme="dark"] .alert-success {
+    border-color: var(--color-success);
+    color: var(--color-success);
+}
+
+[data-theme="dark"] .alert-warning {
+    border-color: var(--color-warning);
+    color: var(--color-warning);
+}
+
+[data-theme="dark"] .alert-error {
+    border-color: var(--color-error);
+    color: var(--color-error);
+}
+
+/* Dark Theme Loading States */
+[data-theme="dark"] .loading::after {
+    background-color: rgba(0, 0, 0, 0.7);
+}

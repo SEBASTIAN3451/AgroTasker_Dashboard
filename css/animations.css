@@ -1,0 +1,297 @@
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes rotateIn {
+    from {
+        transform: rotate(-180deg);
+        opacity: 0;
+    }
+    to {
+        transform: rotate(0);
+        opacity: 1;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Clases de Animación */
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slide-up {
+    animation: slideInUp 0.3s ease-in-out;
+}
+
+.animate-slide-down {
+    animation: slideInDown 0.3s ease-in-out;
+}
+
+.animate-slide-left {
+    animation: slideInLeft 0.3s ease-in-out;
+}
+
+.animate-slide-right {
+    animation: slideInRight 0.3s ease-in-out;
+}
+
+.animate-scale-in {
+    animation: scaleIn 0.3s ease-in-out;
+}
+
+.animate-bounce {
+    animation: bounce 1s ease-in-out;
+}
+
+.animate-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.animate-rotate-in {
+    animation: rotateIn 0.5s ease-in-out;
+}
+
+/* Animaciones para elementos específicos */
+.nav {
+    animation: slideInDown 0.5s ease-in-out;
+}
+
+.card {
+    animation: scaleIn 0.3s ease-in-out;
+}
+
+.notification-item {
+    animation: slideInRight 0.3s ease-in-out;
+}
+
+.stat-card {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.chart-container {
+    animation: slideInUp 0.5s ease-in-out;
+}
+
+.btn:active {
+    animation: pulse 0.3s ease-in-out;
+}
+
+.status-indicator.connected {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.loading-shimmer {
+    background: linear-gradient(
+        90deg,
+        var(--color-background) 0%,
+        var(--color-surface) 50%,
+        var(--color-background) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Transiciones */
+.transition-all {
+    transition: all 0.3s ease-in-out;
+}
+
+.transition-transform {
+    transition: transform 0.3s ease-in-out;
+}
+
+.transition-opacity {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.transition-colors {
+    transition: background-color 0.3s ease-in-out,
+                color 0.3s ease-in-out,
+                border-color 0.3s ease-in-out;
+}
+
+/* Hover Effects */
+.hover-scale {
+    transition: transform 0.3s ease-in-out;
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}
+
+.hover-lift {
+    transition: transform 0.3s ease-in-out;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+.hover-rotate {
+    transition: transform 0.3s ease-in-out;
+}
+
+.hover-rotate:hover {
+    transform: rotate(5deg);
+}
+
+/* Animaciones de Carga */
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--color-background);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Animaciones de Estado */
+.status-change {
+    transition: background-color 0.3s ease-in-out,
+                border-color 0.3s ease-in-out,
+                color 0.3s ease-in-out;
+}
+
+/* Animaciones de Notificación */
+.notification-badge {
+    animation: bounce 0.5s ease-in-out;
+}
+
+/* Animaciones de Gráficos */
+.chart-update {
+    animation: pulse 0.3s ease-in-out;
+}
+
+/* Animaciones de Formulario */
+.form-input:focus {
+    transition: all 0.3s ease-in-out;
+    transform: scale(1.02);
+}
+
+/* Animaciones de Modal */
+.modal {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content {
+    animation: slideInUp 0.3s ease-in-out;
+}
+
+/* Animaciones de Error */
+.error-shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Dashboard</title>
+</head>
+<body>
+    <h1>Test de Conexión</h1>
+    <div id="result"></div>
+    <pre id="data"></pre>
+
+    <script>
+        console.log('Iniciando test...');
+        
+        fetch('/api/thingspeak/soil')
+            .then(response => {
+                console.log('Response:', response);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data:', data);
+                document.getElementById('result').innerHTML = '<h2 style="color: green;">✓ Conexión exitosa</h2>';
+                document.getElementById('data').textContent = JSON.stringify(data, null, 2);
+                
+                if (data.feeds && data.feeds.length > 0) {
+                    const last = data.feeds[data.feeds.length - 1];
+                    alert('Datos recibidos! Humedad: ' + last.field1 + '%, Temp: ' + last.field2 + '°C');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = '<h2 style="color: red;">✗ Error: ' + error.message + '</h2>';
+            });
+    </script>
+</body>
+</html>
