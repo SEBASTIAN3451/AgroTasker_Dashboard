@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroTasker - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 { font-size: 32px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+        .status.ok { border-left: 4px solid #48bb78; }
+        .status.warning { border-left: 4px solid #ed8936; }
+        .status.error { border-left: 4px solid #f56565; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .section-title {
+            font-size: 20px;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .card.hidden { display: none; }
+        .card h3 {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .card .value {
+            font-size: 28px;
+            color: #00A3FF;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .chart { height: 100px; }
+        .alerts { margin-bottom: 20px; }
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+        .alert.critical { background: #fee; border-color: #f56565; color: #742a2a; }
+        .alert.warning { background: #fffaf0; border-color: #ed8936; color: #7c2d12; }
+        .alert.info { background: #ebf8ff; border-color: #4299e1; color: #2c5282; }
+        .loading { text-align: center; color: #718096; padding: 40px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 AgroTasker - Monitoreo en Tiempo Real</h1>
+        <p>Sistema Inteligente de Cultivo de Mango</p>
+    </div>
+
+    <div class="container">
+        <div id="alerts" class="section alerts"></div>
+        
+        <div class="section">
+            <div class="section-title">📊 Sensores del Suelo</div>
+            <div class="grid" id="soil"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">🌦️ Sensores Meteorológicos</div>
+            <div class="grid" id="weather"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📈 Potencial Mátrico y UV</div>
+            <div class="grid" id="matric"></div>
+        </div>
+    </div>
+
+    <div class="status ok" id="status">
+        <span id="status-text">Conectando...</span>
+    </div>
+
+    <script>
+        const charts = {};
+        const sensorIds = {
+            soil: ['humedad-suelo', 'temp-suelo', 'ph-suelo', 'conductividad', 'nitrogeno', 'fosforo', 'potasio'],
+            weather: ['viento-direccion', 'viento-velocidad', 'precipitacion', 'temp-aire', 'humedad-aire', 'presion'],
+            matric: ['resistencia-30cm', 'resistencia-60cm', 'uv-index']
+        };
+
+        function updateStatus(msg, type) {
+            const el = document.getElementById('status');
+            document.getElementById('status-text').textContent = msg;
+            el.className = 'status ' + type;
+        }
+
+        function addCard(container, id, name) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = 'card-' + id;
+            card.innerHTML = `<h3>${name}</h3><div class="value" id="val-${id}">--</div><canvas id="chart-${id}" class="chart"></canvas>`;
+            document.getElementById(container).appendChild(card);
+        }
+
+        function initCards() {
+            addCard('soil', 'humedad-suelo', '💧 Humedad Suelo (%)');
+            addCard('soil', 'temp-suelo', '🌡️ Temp. Suelo (°C)');
+            addCard('soil', 'ph-suelo', '⚗️ pH Suelo');
+            addCard('soil', 'conductividad', '⚡ Conductividad (µS/cm)');
+            addCard('soil', 'nitrogeno', '🌿 Nitrógeno (mg/kg)');
+            addCard('soil', 'fosforo', '🌿 Fósforo (mg/kg)');
+            addCard('soil', 'potasio', '🌿 Potasio (mg/kg)');
+
+            addCard('weather', 'viento-direccion', '💨 Dir. Viento (°)');
+            addCard('weather', 'viento-velocidad', '💨 Vel. Viento (km/h)');
+            addCard('weather', 'precipitacion', '🌧️ Precipitación (mm)');
+            addCard('weather', 'temp-aire', '🌡️ Temp. Aire (°C)');
+            addCard('weather', 'humedad-aire', '💧 Humedad Aire (%)');
+            addCard('weather', 'presion', '📊 Presión (hPa)');
+
+            addCard('matric', 'resistencia-30cm', '📉 Resistencia 30cm (kΩ)');
+            addCard('matric', 'resistencia-60cm', '📉 Resistencia 60cm (kΩ)');
+            addCard('matric', 'uv-index', '☀️ Índice UV');
+        }
+
+        function setValue(id, value, unit) {
+            const el = document.getElementById('val-' + id);
+            const card = document.getElementById('card-' + id);
+            if (!el) return;
+
+            const num = parseFloat(value);
+            if (isNaN(num) || value === null || value === undefined) {
+                if (card) card.classList.add('hidden');
+                return;
+            }
+
+            if (card) card.classList.remove('hidden');
+            el.textContent = num.toFixed(2) + ' ' + unit;
+        }
+
+        async function fetchData() {
+            updateStatus('Cargando datos...', 'warning');
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+
+                const [soil, weather, matric] = await Promise.all([
+                    fetch('/api/thingspeak/soil', { signal: controller.signal }).then(r => r.json()).catch(() => ({feeds: []})),
+                    fetch('/api/thingspeak/weather', { signal: controller.signal }).then(r => r.json()).catch(() => ({feeds: []})),
+                    fetch('/api/thingspeak/matric_uv', { signal: controller.signal }).then(r => r.json()).catch(() => ({feeds: []}))
+                ]);
+
+                clearTimeout(timeout);
+                console.log('Datos:', {soil: soil.feeds?.length, weather: weather.feeds?.length, matric: matric.feeds?.length});
+
+                let hasData = false;
+
+                if (soil.feeds && soil.feeds.length > 0) {
+                    const latest = soil.feeds[soil.feeds.length - 1];
+                    if (latest.field1) { setValue('humedad-suelo', latest.field1, '%'); hasData = true; }
+                    if (latest.field2) { setValue('temp-suelo', latest.field2, '°C'); hasData = true; }
+                    if (latest.field3) { setValue('ph-suelo', latest.field3, ''); hasData = true; }
+                    if (latest.field4) { setValue('conductividad', latest.field4, 'µS/cm'); hasData = true; }
+                    if (latest.field5) { setValue('nitrogeno', latest.field5, 'mg/kg'); hasData = true; }
+                    if (latest.field6) { setValue('fosforo', latest.field6, 'mg/kg'); hasData = true; }
+                    if (latest.field7) { setValue('potasio', latest.field7, 'mg/kg'); hasData = true; }
+                }
+
+                if (weather.feeds && weather.feeds.length > 0) {
+                    const latest = weather.feeds[weather.feeds.length - 1];
+                    if (latest.field1) { setValue('viento-direccion', latest.field1, '°'); hasData = true; }
+                    if (latest.field2) { setValue('viento-velocidad', latest.field2, 'km/h'); hasData = true; }
+                    if (latest.field3) { setValue('precipitacion', latest.field3, 'mm'); hasData = true; }
+                    if (latest.field4) { setValue('temp-aire', latest.field4, '°C'); hasData = true; }
+                    if (latest.field5) { setValue('humedad-aire', latest.field5, '%'); hasData = true; }
+                    if (latest.field6) { setValue('presion', latest.field6, 'hPa'); hasData = true; }
+                }
+
+                if (matric.feeds && matric.feeds.length > 0) {
+                    const latest = matric.feeds[matric.feeds.length - 1];
+                    if (latest.field1) { setValue('resistencia-30cm', latest.field1, 'kΩ'); hasData = true; }
+                    if (latest.field2) { setValue('resistencia-60cm', latest.field2, 'kΩ'); hasData = true; }
+                    if (latest.field3) { setValue('uv-index', latest.field3, ''); hasData = true; }
+                }
+
+                if (hasData) {
+                    updateStatus('✓ Datos en vivo - ' + new Date().toLocaleTimeString('es-MX'), 'ok');
+                } else {
+                    updateStatus('⚠ Sin datos de sensores', 'warning');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                updateStatus('✗ Error - Reintentando...', 'error');
+                setTimeout(fetchData, 5000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initCards();
+            fetchData();
+            setInterval(fetchData, 20000);
+        });
+    </script>
+</body>
+</html>

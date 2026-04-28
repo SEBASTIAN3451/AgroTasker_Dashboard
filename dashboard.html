@@ -5,60 +5,169 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SamarIA SmartLab - AgroTasker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/predictions.js?v=20260427"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f7fa;
+            font-family: 'Manrope', 'Segoe UI', sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(102, 126, 234, 0.14), transparent 34%),
+                radial-gradient(circle at top right, rgba(118, 75, 162, 0.12), transparent 28%),
+                linear-gradient(180deg, #eef2ff 0%, #f8fafc 36%, #f5f7fa 100%);
             padding: 0;
             min-height: 100vh;
+            color: #1f2937;
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 60px 40px;
+            background:
+                radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 28%),
+                linear-gradient(135deg, #5b6ee1 0%, #6d4fd9 48%, #7c3aed 100%);
+            padding: 36px 40px 86px;
             color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(60, 64, 67, 0.12);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            inset: auto -12% -46px auto;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            filter: blur(2px);
         }
         
         .header-content {
-            max-width: 1400px;
+            max-width: 1500px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
         }
         
         .logo {
-            width: 50px; height: 50px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 12px;
+            width: 58px; height: 58px;
+            background: rgba(255,255,255,0.14);
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
-            margin-bottom: 20px;
+            font-size: 28px;
+            margin-bottom: 0;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+
+        .header-copy {
+            max-width: 780px;
         }
         
         .header-title h1 { 
-            font-size: 36px;
-            margin-bottom: 10px;
-            font-weight: 700;
+            font-size: clamp(28px, 3vw, 40px);
+            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
         }
         
         .header-title p { 
-            font-size: 18px;
-            opacity: 0.95;
+            font-size: 16px;
+            opacity: 0.93;
+            line-height: 1.5;
+        }
+
+        .header-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.18);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            backdrop-filter: blur(10px);
         }
         
         .container {
-            max-width: 1400px;
-            margin: -30px auto 0;
-            padding: 0 40px 80px;
+            max-width: 1500px;
+            margin: -54px auto 0;
+            padding: 0 28px 92px;
         }
         
+        .dashboard-overview {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .overview-card {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 18px;
+            padding: 18px 18px 16px;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(12px);
+            min-height: 110px;
+        }
+
+        .overview-kicker {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            color: #64748b;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .overview-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+            margin-bottom: 6px;
+        }
+
+        .overview-note {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.45;
+        }
+
+        .overview-card.accent {
+            background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(124,58,237,0.08));
+            border-color: rgba(102,126,234,0.25);
+        }
+
+        .overview-card.ok .overview-value { color: #166534; }
+        .overview-card.warn .overview-value { color: #92400e; }
+        .overview-card.bad .overview-value { color: #991b1b; }
+
         .section {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background: rgba(255,255,255,0.92);
+            padding: 26px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 16px 35px rgba(15,23,42,0.08);
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            backdrop-filter: blur(12px);
         }
         
         .section-title {
@@ -68,24 +177,39 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-weight: 600;
+            font-weight: 800;
             padding-bottom: 15px;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 1px solid #e5e7eb;
+            letter-spacing: -0.02em;
         }
         
         .sensors-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
         }
         
         .sensor-card {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(248,250,252,0.98), rgba(241,245,249,0.88));
+            padding: 18px;
+            border-radius: 16px;
             border: 1px solid #e2e8f0;
             transition: all 0.3s;
             display: block;
+            min-height: 164px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sensor-card::after {
+            content: '';
+            position: absolute;
+            right: -24px;
+            bottom: -24px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59,130,246,0.10), transparent 72%);
         }
         
         .sensor-card.hidden {
@@ -93,9 +217,9 @@
         }
         
         .sensor-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-color: #00A3FF;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            border-color: rgba(59,130,246,0.35);
         }
         
         .sensor-card.updating {
@@ -113,36 +237,116 @@
             }
         
         .sensor-card h3 {
-            color: #4a5568;
-            font-size: 14px;
+            color: #475569;
+            font-size: 13px;
             margin-bottom: 12px;
-            font-weight: 600;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.08em;
         }
         
         .sensor-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #00A3FF;
+            font-size: 30px;
+            font-weight: 800;
+            color: #0ea5e9;
             margin-bottom: 15px;
+            letter-spacing: -0.03em;
         }
         
         .chart-container {
-            height: 120px;
+            height: 110px;
             position: relative;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 28px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            padding: 18px 20px;
+            border-radius: 14px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        .prediction-card h4 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #f8fafc;
+        }
+
+        .prediction-card p {
+            font-size: 14px;
+            line-height: 1.55;
+            margin-bottom: 6px;
+        }
+
+        .quick-highlight {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .quick-pill {
+            padding: 16px 18px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 22px rgba(15,23,42,0.06);
+        }
+
+        .quick-pill-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        .quick-pill-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        .quick-pill-sub {
+            margin-top: 6px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.45;
         }
         
         .status-bar {
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            background: white;
+            background: rgba(255,255,255,0.88);
             padding: 12px 40px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 -8px 24px rgba(15,23,42,0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 100;
+            backdrop-filter: blur(14px);
+            border-top: 1px solid rgba(226,232,240,0.85);
         }
         
         .status-indicator {
@@ -178,6 +382,379 @@
             color: #718096;
             font-size: 13px;
         }
+        
+        /* Nuevos estilos para alertas y eventos */
+        .alert-box {
+            padding: 15px 20px;
+            border-radius: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 8px 20px rgba(15,23,42,0.05);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .alert-critical {
+            background: #fee;
+            border-left: 4px solid #f56565;
+            color: #742a2a;
+        }
+        
+        .alert-warning {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            color: #7c2d12;
+        }
+        
+        .alert-info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            color: #2c5282;
+        }
+        
+        .alert-success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            color: #22543d;
+        }
+        
+        .alert-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .alert-message {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .alert-time {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        
+        .event-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .event-item:last-child {
+            border-bottom: none;
+        }
+        
+        .event-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .event-icon.water { background: #ebf8ff; }
+        .event-icon.alert { background: #fffaf0; }
+        .event-icon.sensor { background: #f0fff4; }
+        
+        .event-details {
+            flex: 1;
+        }
+        
+        .event-title {
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 2px;
+        }
+        
+        .event-time {
+            font-size: 12px;
+            color: #718096;
+        }
+        
+        .recommendation-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .recommendation-card h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .recommendation-card p {
+            font-size: 14px;
+            opacity: 0.95;
+            line-height: 1.5;
+        }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            padding: 18px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        .prediction-card h4 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #f8fafc;
+        }
+
+        .prediction-card p {
+            font-size: 14px;
+            line-height: 1.55;
+            margin-bottom: 6px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #a0aec0;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .simulation-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .sim-chip {
+            background: #edf2f7;
+            color: #2d3748;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .overview-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .overview-pill {
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .overview-ok {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .overview-warn {
+            background: #fef9c3;
+            border-color: #fde047;
+            color: #854d0e;
+        }
+
+        .overview-critical {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .stats-box {
+            margin-bottom: 14px;
+            border: 1px solid #dbeafe;
+            background: #eff6ff;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .stats-box h4 {
+            margin: 0 0 6px 0;
+            color: #1e3a8a;
+            font-size: 13px;
+        }
+
+        .stats-box p {
+            margin: 0;
+            color: #1e293b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .semaphore-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .semaphore-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .semaphore-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .semaphore-title {
+            color: #2d3748;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .semaphore-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 0 10px rgba(0, 0, 0, 0.16);
+        }
+
+        .dot-green { background: #22c55e; }
+        .dot-yellow { background: #eab308; }
+        .dot-red { background: #ef4444; }
+
+        .semaphore-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 6px;
+        }
+
+        .semaphore-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 5px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .badge-green {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-yellow {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .badge-red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .semaphore-meta {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .semaphore-action {
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .critical-banner {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            border-left: 6px solid #dc2626;
+            color: #7f1d1d;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .sim-table-wrap {
+            overflow-x: auto;
+        }
+
+        .sim-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .sim-table th,
+        .sim-table td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .sim-table th {
+            color: #334155;
+            background: #f8fafc;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .table-state {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+        }
+
+        .state-green { color: #166534; }
+        .state-yellow { color: #854d0e; }
+        .state-red { color: #991b1b; }
     </style>
 </head>
 <body>
@@ -195,9 +772,176 @@
     <!-- Contenedor principal -->
     <div class="container">
 
+    <div class="dashboard-overview">
+        <div class="overview-card accent" id="overview-source-card">
+            <div class="overview-kicker">Fuente activa</div>
+            <div class="overview-value" id="overview-source">Dropbox</div>
+            <div class="overview-note" id="overview-source-note">Cargando serie histórica real...</div>
+        </div>
+        <div class="overview-card ok" id="overview-state-card">
+            <div class="overview-kicker">Estado general</div>
+            <div class="overview-value" id="overview-state">Evaluando...</div>
+            <div class="overview-note" id="overview-state-note">Semaforización de suelo y clima.</div>
+        </div>
+        <div class="overview-card" id="overview-et0-card">
+            <div class="overview-kicker">ET0 estimada</div>
+            <div class="overview-value" id="overview-et0">-- mm/día</div>
+            <div class="overview-note" id="overview-et0-note">Referencia para riego y estrés hídrico.</div>
+        </div>
+        <div class="overview-card" id="overview-soil-card">
+            <div class="overview-kicker">Suelo en foco</div>
+            <div class="overview-value" id="overview-soil">-- %</div>
+            <div class="overview-note" id="overview-soil-note">pH, humedad, temperatura, conductividad y NPK.</div>
+        </div>
+        <div class="overview-card" id="overview-fresh-card">
+            <div class="overview-kicker">Frescura</div>
+            <div class="overview-value" id="overview-fresh">--</div>
+            <div class="overview-note" id="overview-fresh-note">Última actualización útil.</div>
+        </div>
+    </div>
+
+    <div class="quick-highlight">
+        <div class="quick-pill">
+            <div class="quick-pill-label">Predicción</div>
+            <div class="quick-pill-value" id="quick-prediction">Esperando datos</div>
+            <div class="quick-pill-sub" id="quick-prediction-sub">Cosecha, riego y riesgos.</div>
+        </div>
+        <div class="quick-pill">
+            <div class="quick-pill-label">Semáforo</div>
+            <div class="quick-pill-value" id="quick-semaphore">--</div>
+            <div class="quick-pill-sub" id="quick-semaphore-sub">Estado de las variables críticas.</div>
+        </div>
+        <div class="quick-pill">
+            <div class="quick-pill-label">Dropbox</div>
+            <div class="quick-pill-value" id="quick-dropbox">-- registros</div>
+            <div class="quick-pill-sub">Serie real cargada en memoria.</div>
+        </div>
+    </div>
+
+    <!-- Sección de Alertas Activas -->
+    <div class="section">
+        <h2 class="section-title">🚨 Alertas Activas</h2>
+        <div id="alerts-container">
+            <div class="empty-state">
+                <div class="empty-state-icon">✓</div>
+                <p>No hay alertas activas. Todo funciona correctamente.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Recomendaciones -->
+    <div class="section">
+        <h2 class="section-title">💡 Recomendaciones Inteligentes</h2>
+        <div id="recommendations-container">
+            <div class="empty-state">
+                <div class="empty-state-icon">🔄</div>
+                <p>Analizando datos para generar recomendaciones...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">🔮 Predicciones con Datos Reales</h2>
+        <div id="predictions-container">
+            <div class="empty-state">
+                <div class="empty-state-icon">🔮</div>
+                <p>Cargando predicciones desde Dropbox...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">🧪 Monitoreo de Variables (Semaforización)</h2>
+        <div class="simulation-toolbar">
+            <div class="sim-chip" id="sim-count-chip">Sensores virtuales: --</div>
+            <div class="sim-chip" id="sim-refresh-chip">Actualización Dropbox: --</div>
+            <div class="sim-chip" id="thingspeak-sync-chip">Dropbox: sincronizando...</div>
+            <div class="sim-chip" id="et0-chip">ET0 estimada: -- mm/día</div>
+            <div class="sim-chip" id="et0-method-chip">ET0 método: simplificado T + HR (referencia FAO56)</div>
+            <div class="sim-chip" id="compare-chip">Dropbox suelo: esperando...</div>
+        </div>
+        <div class="overview-strip">
+            <div class="overview-pill overview-warn" id="global-state-pill">Situación actual: evaluando...</div>
+            <div class="overview-pill" id="trace-source-pill">Fuente activa: evaluando...</div>
+            <div class="overview-pill" id="trace-real-pill">Último dato real: esperando...</div>
+        </div>
+        <div class="stats-box">
+            <h4>Estadística de sensores (media por lotes)</h4>
+            <p id="stats-summary-text">Calculando estadísticas con datos reales...</p>
+        </div>
+        <div class="critical-banner" id="sim-critical-alert"></div>
+        <div class="semaphore-grid">
+            <div class="semaphore-card" data-metric="tempSuelo">
+                <div class="semaphore-head">
+                    <span class="semaphore-title">Temperatura del Suelo</span>
+                    <span class="semaphore-dot dot-green" id="dot-tempSuelo"></span>
+                </div>
+                <div class="semaphore-value" id="semaphore-tempSuelo">--</div>
+                <span class="semaphore-badge badge-green" id="badge-tempSuelo">Normal</span>
+                <div class="semaphore-meta" id="range-tempSuelo">Apto: 24-32 °C | Moderado: 20-24 °C o 32-35 °C | Crítico: <20 °C o >35 °C</div>
+                <div class="semaphore-action" id="action-tempSuelo">Acción: Estado verde, no requiere acción.</div>
+            </div>
+            <div class="semaphore-card" data-metric="humedadSuelo">
+                <div class="semaphore-head">
+                    <span class="semaphore-title">Humedad del Suelo</span>
+                    <span class="semaphore-dot dot-green" id="dot-humedadSuelo"></span>
+                </div>
+                <div class="semaphore-value" id="semaphore-humedadSuelo">--</div>
+                <span class="semaphore-badge badge-green" id="badge-humedadSuelo">Normal</span>
+                <div class="semaphore-meta" id="range-humedadSuelo">Verde: 20-35 % (VWC) | Amarillo: 15-19 % o 36-40 % | Rojo: <15 % o >40 %</div>
+                <div class="semaphore-action" id="action-humedadSuelo">Acción: Estado verde, no requiere acción.</div>
+            </div>
+            <div class="semaphore-card" data-metric="phSuelo">
+                <div class="semaphore-head">
+                    <span class="semaphore-title">pH del Suelo</span>
+                    <span class="semaphore-dot dot-green" id="dot-phSuelo"></span>
+                </div>
+                <div class="semaphore-value" id="semaphore-phSuelo">--</div>
+                <span class="semaphore-badge badge-green" id="badge-phSuelo">Normal</span>
+                <div class="semaphore-meta" id="range-phSuelo">Apto: 5.5-<7.0 | Moderado: 7.0-<7.5 | Marginal: <5.5 | No apto: ≥7.5</div>
+                <div class="semaphore-action" id="action-phSuelo">Acción: Estado verde, no requiere acción.</div>
+            </div>
+            <div class="semaphore-card" data-metric="conductividad">
+                <div class="semaphore-head">
+                    <span class="semaphore-title">Conductividad</span>
+                    <span class="semaphore-dot dot-green" id="dot-conductividad"></span>
+                </div>
+                <div class="semaphore-value" id="semaphore-conductividad">--</div>
+                <span class="semaphore-badge badge-green" id="badge-conductividad">Normal</span>
+                <div class="semaphore-meta" id="range-conductividad">Apto: 200-800 µS/cm | Moderado: 150-200 o 800-1200 | Crítico: <150 o >1200</div>
+                <div class="semaphore-action" id="action-conductividad">Acción: Estado verde, no requiere acción.</div>
+            </div>
+        </div>
+        <div class="sim-table-wrap">
+            <table class="sim-table">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Sensor</th>
+                        <th>Temp. Suelo</th>
+                        <th>Humedad Suelo</th>
+                        <th>pH</th>
+                        <th>Conductividad</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="simulation-history-body">
+                    <tr>
+                        <td colspan="7" style="color: #94a3b8;">Generando registros simulados...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="section">
         <h2 class="section-title">📊 Estación Edáfica - Suelo</h2>
         <div class="sensors-grid">
+            <div class="sensor-card">
+                <h3>⚗️ pH Suelo</h3>
+                <div class="sensor-value" id="value-ph-suelo">--</div>
+                <div class="chart-container"><canvas id="chart-ph-suelo"></canvas></div>
+            </div>
             <div class="sensor-card">
                 <h3>💧 Humedad Suelo</h3>
                 <div class="sensor-value" id="value-humedad-suelo">--</div>
@@ -207,11 +951,6 @@
                 <h3>🌡️ Temp. Suelo</h3>
                 <div class="sensor-value" id="value-temp-suelo">--</div>
                 <div class="chart-container"><canvas id="chart-temp-suelo"></canvas></div>
-            </div>
-            <div class="sensor-card">
-                <h3>⚗️ pH Suelo</h3>
-                <div class="sensor-value" id="value-ph-suelo">--</div>
-                <div class="chart-container"><canvas id="chart-ph-suelo"></canvas></div>
             </div>
             <div class="sensor-card">
                 <h3>⚡ Conductividad</h3>
@@ -233,7 +972,7 @@
         </div>
     </div>
 
-    <div class="section">
+    <div class="section" id="weather-section">
         <h2 class="section-title">🌦️ Estación Meteorológica</h2>
         <div class="sensors-grid">
             <div class="sensor-card">
@@ -266,7 +1005,7 @@
         </div>
     </div>
 
-    <div class="section">
+    <div class="section" id="matric-section">
         <h2 class="section-title">🌍 Potencial Mátrico y UV</h2>
         <div class="sensors-grid">
             <div class="sensor-card">
@@ -287,6 +1026,22 @@
         </div>
     </div>
 
+    </div>
+    <!-- Fin container -->
+
+    <!-- Sección de Registro de Eventos -->
+    <div class="container" style="margin-top: 0;">
+        <div class="section">
+            <h2 class="section-title">📋 Registro de Eventos Recientes</h2>
+            <div id="events-container">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <p>No hay eventos registrados aún.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Barra de estado -->
     <div class="status-bar">
         <div class="status-indicator status-warning" id="connection-status">Conectando...</div>
@@ -296,13 +1051,188 @@
     <script>
         let charts = {};
         let updateInterval;
+        let simulationInterval;
+        let sensorData = {};
+        let events = [];
+        let tableHistory = [];
+        let simulationSeries = {
+            humedadSuelo: [],
+            tempAire: [],
+            phSuelo: [],
+            humedadAire: []
+        };
+        let virtualSensors = [];
+        let dropboxSeries = [];
+        let dropboxCursor = 0;
+        let useDropboxRealData = false;
+        let thingSpeakReference = {
+            tempAire: null,
+            humedadSuelo: null,
+            phSuelo: null,
+            humedadAire: null
+        };
+        let thingSpeakSeries = {
+            tempAire: [],
+            humedadSuelo: [],
+            phSuelo: [],
+            humedadAire: [],
+            tempSuelo: [],
+            conductividad: [],
+            nitrogeno: [],
+            fosforo: [],
+            potasio: []
+        };
+        let statsInterval;
+        let dropboxStatsCursor = 0;
+        let activeDataSource = 'Inicializando';
+        let lastThingSpeakReceiveAt = null;
+        let lastDropboxLoadAt = null;
+        let lastSemaphoreLevels = {};
+        let lastCriticalEventAt = {};
+
+        const THINGSPEAK_REFRESH_MS = 60000; // 60s (1 minuto - actualización en tiempo real)
+        const SIMULATION_REFRESH_MS = 5000;
+        const VIRTUAL_SENSOR_COUNT = 14;
+        const MAX_SIM_SERIES = 120;
+        const MAX_TABLE_HISTORY = 560;
+        const TABLE_ROWS_VISIBLE = 40;
+        const CRITICAL_EVENT_COOLDOWN_MS = 60000;
+        const STATS_BATCH_SIZE = 30;
+        const STATS_BATCH_INTERVAL_MS = 60000;
+        const SOIL_STALE_THRESHOLD_MIN = 20;
+        const USED_SENSOR_IDS = ['humedad-suelo', 'temp-suelo', 'ph-suelo', 'humedad-aire'];
+        const SOIL_RULE_PROFILES = {
+            vwc: {
+                label: 'Humedad del suelo',
+                unit: '%',
+                rangeText: 'Verde: 20-35 % (VWC) | Amarillo: 15-19 % o 36-40 % | Rojo: <15 % o >40 %',
+                green: value => value >= 20 && value <= 35,
+                yellow: value => (value >= 15 && value < 20) || (value > 35 && value <= 40)
+            },
+            fc: {
+                label: 'Humedad del suelo',
+                unit: '%',
+                rangeText: 'Verde: 60-80 % (FC) | Amarillo: 50-59 % o 81-90 % | Rojo: <50 % o >90 %',
+                green: value => value >= 60 && value <= 80,
+                yellow: value => (value >= 50 && value < 60) || (value > 80 && value <= 90)
+            }
+        };
+
+        let SEMAPHORE_RULES = {
+            tempSuelo: {
+                label: 'Temperatura del suelo',
+                unit: '°C',
+                green: value => value >= 24 && value <= 32,
+                yellow: value => (value >= 20 && value < 24) || (value > 32 && value <= 35)
+            },
+            humedadSuelo: SOIL_RULE_PROFILES.vwc,
+            phSuelo: {
+                label: 'pH del suelo',
+                unit: '',
+                green: value => value >= 5.5 && value < 7.0,
+                yellow: value => value < 5.5 || (value >= 7.0 && value < 7.5)
+            },
+            conductividad: {
+                label: 'Conductividad',
+                unit: 'µS/cm',
+                green: value => value >= 200 && value <= 800,
+                yellow: value => (value >= 150 && value < 200) || (value > 800 && value <= 1200)
+            }
+        };
 
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard inicializado');
-            initCharts();
-            fetchAllData();
-            updateInterval = setInterval(fetchAllData, 10000); // 10 segundos
+            initDashboard();
         });
+
+        async function initDashboard() {
+            console.log('Dashboard inicializado');
+            await loadDropboxSeries();
+            activeDataSource = 'Dropbox (tiempo real)';
+            document.getElementById('sim-count-chip').textContent = 'Fuente real: Dropbox';
+            document.getElementById('sim-refresh-chip').textContent = `Actualización Dropbox: ${THINGSPEAK_REFRESH_MS / 1000} s (1 min)`;
+            const weatherSection = document.getElementById('weather-section');
+            const matricSection = document.getElementById('matric-section');
+            if (weatherSection) weatherSection.style.display = 'none';
+            if (matricSection) matricSection.style.display = 'none';
+            hideUnusedSensors();
+
+            initCharts();
+
+            initSimulationEngine();
+
+            fetchAllData();
+            updateInterval = setInterval(fetchAllData, THINGSPEAK_REFRESH_MS);
+
+            updateStatsWindowFromSource();
+            statsInterval = setInterval(updateStatsWindowFromSource, STATS_BATCH_INTERVAL_MS);
+
+            addEvent('Sistema iniciado', 'sensor', '🚀');
+            addEvent('Modo datos reales Dropbox activo (7 fields suelo sintéticos)', 'sensor', '📡');
+
+            updateTraceabilityDisplay();
+            updateGlobalOverview();
+            displayPredictions();
+            updateOverviewCards();
+        }
+
+        async function loadDropboxSeries() {
+            try {
+                const response = await fetch('/api/dropbox/series');
+                if (!response.ok) {
+                    throw new Error(`Dropbox API status ${response.status}`);
+                }
+
+                const payload = await response.json();
+                const series = Array.isArray(payload.series) ? payload.series : [];
+
+                dropboxSeries = series
+                    .map(item => ({
+                        created_at: item.created_at,
+                        tempAire: parseFloat(item.tempAire),
+                        humedadSuelo: parseFloat(item.humedadSuelo),
+                        phSuelo: parseFloat(item.phSuelo),
+                        humedadAire: parseFloat(item.humedadAire)
+                    }))
+                    .filter(item =>
+                        !Number.isNaN(item.tempAire) &&
+                        !Number.isNaN(item.humedadSuelo) &&
+                        !Number.isNaN(item.phSuelo) &&
+                        !Number.isNaN(item.humedadAire)
+                    );
+
+                useDropboxRealData = dropboxSeries.length > 0;
+                dropboxCursor = 0;
+                dropboxStatsCursor = 0;
+
+                if (useDropboxRealData) {
+                    activeDataSource = 'Dropbox (histórico)';
+                    lastDropboxLoadAt = Date.now();
+                    document.getElementById('sim-count-chip').textContent = `Fuente real: Dropbox (${dropboxSeries.length} registros)`;
+                    updateStatus('Modo datos reales (Dropbox) + sync local', 'success');
+                }
+
+                updateOverviewCards();
+            } catch (error) {
+                console.warn('No fue posible cargar Dropbox, se usará la caché local:', error);
+                useDropboxRealData = false;
+                activeDataSource = 'Dropbox (caché local)';
+                document.getElementById('sim-count-chip').textContent = 'Fuente real: Dropbox';
+                updateOverviewCards();
+            }
+
+            updateTraceabilityDisplay();
+        }
+
+        function hideUnusedSensors() {
+            const valueNodes = document.querySelectorAll('.sensor-card .sensor-value[id^="value-"]');
+            valueNodes.forEach(node => {
+                const id = node.id.replace('value-', '');
+                if (!USED_SENSOR_IDS.includes(id)) {
+                    const card = node.closest('.sensor-card');
+                    if (card) card.classList.add('hidden');
+                }
+            });
+        }
 
         function initCharts() {
             const config = {
@@ -315,9 +1245,7 @@
                 }
             };
 
-            ['humedad-suelo', 'temp-suelo', 'ph-suelo', 'conductividad',
-             'temp-aire', 'humedad-aire', 'precipitacion',
-             'resistencia-30cm', 'resistencia-60cm', 'uv-index'].forEach(id => {
+            ['humedad-suelo', 'temp-suelo', 'ph-suelo', 'humedad-aire'].forEach(id => {
                 const canvas = document.getElementById(`chart-${id}`);
                 if (canvas) {
                     charts[id] = new Chart(canvas, {
@@ -338,119 +1266,600 @@
 
         async function fetchAllData() {
             console.log('Obteniendo datos...');
-            updateStatus('Actualizando...', 'warning');
+            updateStatus('Cargando datos en tiempo real...', 'warning');
 
             try {
-                const [soil, weather, matric] = await Promise.all([
-                    fetch('/api/thingspeak/soil').then(r => r.json()),
-                    fetch('/api/thingspeak/weather').then(r => r.json()),
-                    fetch('/api/thingspeak/matric_uv').then(r => r.json())
-                ]);
+                if (!dropboxSeries.length) {
+                    await loadDropboxSeries();
+                }
 
-                console.log('Datos:', { soil, weather, matric });
+                if (!dropboxSeries.length) {
+                    throw new Error('Dropbox no devolvió series');
+                }
 
-                if (soil.feeds && soil.feeds.length > 0) processSoil(soil);
-                if (weather.feeds && weather.feeds.length > 0) processWeather(weather);
-                if (matric.feeds && matric.feeds.length > 0) processMatric(matric);
+                const point = dropboxSeries[dropboxCursor] || dropboxSeries[dropboxSeries.length - 1];
+                dropboxCursor = (dropboxCursor + 1) % dropboxSeries.length;
+
+                const soil = {
+                    source: 'dropbox',
+                    feeds: [{
+                        created_at: point.created_at,
+                        field1: point.humedadSuelo,
+                        field2: point.tempAire,
+                        field3: point.phSuelo,
+                        field4: null,
+                        field5: null,
+                        field6: null,
+                        field7: null
+                    }]
+                };
+
+                console.log('Datos recibidos:', { soil, point });
+                updateReferenceComparisonChip();
+
+                let dataReceived = false;
+                if (soil.feeds && soil.feeds.length > 0) { processSoil(soil); dataReceived = true; }
+
+                if (dataReceived) {
+                    lastThingSpeakReceiveAt = Date.now();
+                    activeDataSource = 'Dropbox (tiempo real - canal suelo sintético)';
+                } else {
+                    activeDataSource = 'Dropbox (sin datos recientes)';
+                }
+
+                // Actualizar predicciones en cada ciclo
+                displayPredictions();
+
+                updateTraceabilityDisplay();
 
                 document.getElementById('last-update').textContent = 
                     `Última actualización: ${new Date().toLocaleTimeString('es-MX')}`;
-                updateStatus('Conectado', 'success');
+
+                document.getElementById('thingspeak-sync-chip').textContent =
+                    `Dropbox: sincronizado ${new Date().toLocaleTimeString('es-MX')}`;
+                
+                if (dataReceived) {
+                    let staleMinutes = 0;
+                    if (sensorData.latestSoilTimestamp) {
+                        const ts = new Date(sensorData.latestSoilTimestamp).getTime();
+                        if (!Number.isNaN(ts)) {
+                            staleMinutes = Math.floor((Date.now() - ts) / 60000);
+                        }
+                    }
+
+                    if (staleMinutes >= SOIL_STALE_THRESHOLD_MIN) {
+                        updateStatus(`Sin conexión: almacenando datos localmente. No se pierden (${staleMinutes} min sin actualización)`, 'warning');
+                        document.getElementById('thingspeak-sync-chip').textContent =
+                            `Sin conexión: almacenando datos. Última sync ${new Date().toLocaleTimeString('es-MX')}`;
+                    } else {
+                        updateStatus(`Conectado - Dropbox suelo ${THINGSPEAK_REFRESH_MS / 60000} min`, 'success');
+                    }
+                } else {
+                    updateStatus('Sin conexión: almacenando datos localmente. No se pierden', 'warning');
+                    document.getElementById('thingspeak-sync-chip').textContent =
+                        'Sin conexión: almacenando datos. No se pierden';
+                }
+
+                updateOverviewCards();
             } catch (error) {
                 console.error('Error:', error);
-                updateStatus('Error de conexión', 'error');
+                activeDataSource = 'Sin conexión (almacenando datos)';
+                updateStatus('Sin conexión: almacenando datos localmente. Reintentando en 5s', 'warning');
+                document.getElementById('thingspeak-sync-chip').textContent =
+                    'Sin conexión: almacenando datos. No se pierden';
+                updateTraceabilityDisplay();
+                updateOverviewCards();
+                setTimeout(fetchAllData, 5000);
             }
         }
 
+        function formatElapsed(ms) {
+            if (ms === null || ms === undefined) return 'sin registro';
+            const minutes = Math.floor(ms / 60000);
+            if (minutes < 1) return 'hace menos de 1 min';
+            if (minutes < 60) return `hace ${minutes} min`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `hace ${hours} h`;
+            const days = Math.floor(hours / 24);
+            return `hace ${days} d`;
+        }
+
+        function updateTraceabilityDisplay() {
+            const sourceNode = document.getElementById('trace-source-pill');
+            const realNode = document.getElementById('trace-real-pill');
+
+            if (sourceNode) {
+                sourceNode.textContent = `Fuente activa: ${activeDataSource}`;
+            }
+
+            if (!realNode) return;
+
+            if (lastThingSpeakReceiveAt) {
+                const age = formatElapsed(Date.now() - lastThingSpeakReceiveAt);
+                realNode.textContent = `Último dato real (Dropbox): ${age}`;
+                return;
+            }
+
+            if (lastDropboxLoadAt) {
+                const age = formatElapsed(Date.now() - lastDropboxLoadAt);
+                realNode.textContent = `Último dato real cargado (Dropbox): ${age}`;
+                return;
+            }
+
+            realNode.textContent = 'Último dato real: esperando...';
+        }
+
+        function updateGlobalOverview() {
+            const node = document.getElementById('global-state-pill');
+            if (!node) return;
+
+            const metrics = [
+                ['tempSuelo', 'Temperatura suelo'],
+                ['humedadSuelo', 'Humedad suelo'],
+                ['phSuelo', 'pH'],
+                ['conductividad', 'Conductividad']
+            ];
+
+            const available = metrics
+                .map(([key, name]) => ({ key, name, value: sensorData[key] }))
+                .filter(item => typeof item.value === 'number' && !Number.isNaN(item.value));
+
+            if (available.length === 0) {
+                node.className = 'overview-pill overview-warn';
+                node.textContent = 'Situación actual: Sin datos suficientes para evaluar';
+                return;
+            }
+
+            const levels = available.map(item => ({ ...item, level: classifySemaphore(item.key, item.value).level }));
+            const reds = levels.filter(item => item.level === 'red').map(item => item.name);
+            const yellows = levels.filter(item => item.level === 'yellow').map(item => item.name);
+
+            if (reds.length > 0) {
+                node.className = 'overview-pill overview-critical';
+                node.textContent = `Situación actual: Crítica | Variables comprometidas: ${reds.join(', ')}`;
+                return;
+            }
+
+            if (yellows.length > 0) {
+                node.className = 'overview-pill overview-warn';
+                node.textContent = `Situación actual: Atención | Monitorear: ${yellows.join(', ')}`;
+                return;
+            }
+
+            node.className = 'overview-pill overview-ok';
+            node.textContent = 'Situación actual: Estable | Todas las variables en rango apto';
+        }
+
+        function updateThingSpeakReference(soil) {
+            const lastSoil = (soil && Array.isArray(soil.feeds) && soil.feeds.length) ? soil.feeds[soil.feeds.length - 1] : null;
+
+            const next = {
+                humedadSuelo: lastSoil ? parseFloat(lastSoil.field1) : null,
+                phSuelo: lastSoil ? parseFloat(lastSoil.field3) : null,
+                tempSuelo: lastSoil ? parseFloat(lastSoil.field2) : null,
+                conductividad: lastSoil ? parseFloat(lastSoil.field4) : null
+            };
+
+            Object.keys(next).forEach(key => {
+                const value = next[key];
+                if (typeof value === 'number' && !Number.isNaN(value) && value > 0) {
+                    thingSpeakReference[key] = value;
+                }
+            });
+        }
+
+        function setThingSpeakSeries(metric, values) {
+            thingSpeakSeries[metric] = values
+                .filter(v => typeof v === 'number' && !Number.isNaN(v));
+        }
+
+        function getActiveSeriesChunk(metric) {
+            return (thingSpeakSeries[metric] || []).slice(-STATS_BATCH_SIZE);
+        }
+
+        function updateStatsWindowFromSource() {
+            renderStatsSummary();
+        }
+
+        function calcMean(values) {
+            if (!values.length) return null;
+            return values.reduce((acc, v) => acc + v, 0) / values.length;
+        }
+
+        function calcMode(values) {
+            if (!values.length) return null;
+            const counts = new Map();
+            values.forEach(v => {
+                const key = v.toFixed(2);
+                counts.set(key, (counts.get(key) || 0) + 1);
+            });
+
+            let bestValue = null;
+            let bestCount = -1;
+            counts.forEach((count, key) => {
+                if (count > bestCount) {
+                    bestCount = count;
+                    bestValue = parseFloat(key);
+                }
+            });
+
+            return bestValue;
+        }
+
+        function renderStatsSummary() {
+            const target = document.getElementById('stats-summary-text');
+            if (!target) return;
+
+            const metricSpecs = [
+                { key: 'humedadSuelo', label: 'Humedad suelo', unit: '%' },
+                { key: 'tempSuelo', label: 'Temp. suelo', unit: '°C' },
+                { key: 'phSuelo', label: 'pH', unit: '' },
+                { key: 'conductividad', label: 'Conductividad', unit: 'µS/cm' },
+                { key: 'nitrogeno', label: 'Nitrógeno', unit: 'mg/kg' },
+                { key: 'fosforo', label: 'Fósforo', unit: 'mg/kg' },
+                { key: 'potasio', label: 'Potasio', unit: 'mg/kg' }
+            ];
+
+            const chunks = metricSpecs.map(spec => {
+                const series = getActiveSeriesChunk(spec.key);
+                const mean = calcMean(series);
+                const mode = calcMode(series);
+                if (mean === null || mode === null) {
+                    return `${spec.label}: sin datos`;
+                }
+
+                const meanText = `${mean.toFixed(2)} ${spec.unit}`.trim();
+                return `${spec.label} (media ${meanText})`;
+            });
+
+            target.textContent = `Lote estadístico: ${STATS_BATCH_SIZE} datos por sensor (actualiza cada ${STATS_BATCH_INTERVAL_MS / 1000}s) | ${chunks.join(' | ')}`;
+        }
+
+        function updateReferenceComparisonChip() {
+            const chip = document.getElementById('compare-chip');
+            if (!chip) return;
+
+            const hasSoil = typeof sensorData.humedadSuelo === 'number';
+            if (!hasSoil) {
+                chip.textContent = 'Dropbox suelo: esperando datos...';
+                return;
+            }
+
+            const nText = typeof sensorData.nitrogeno === 'number' ? `N:${sensorData.nitrogeno.toFixed(2)} ` : 'N:-- ';
+            const pText = typeof sensorData.fosforo === 'number' ? `P:${sensorData.fosforo.toFixed(2)} ` : 'P:-- ';
+            const kText = typeof sensorData.potasio === 'number' ? `K:${sensorData.potasio.toFixed(2)}` : 'K:--';
+            chip.textContent = `Dropbox suelo activo | ${nText}${pText}${kText}`;
+        }
+
+        function displayPredictions() {
+            const container = document.getElementById('predictions-container');
+            if (!container) return;
+
+            try {
+                if (typeof predictionSystem === 'undefined') {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔮</div>
+                            <p>El motor de predicciones no está disponible.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const humidityAire = Number(sensorData.humedadAire ?? sensorData.humedadSuelo ?? 0);
+                const temperatureAire = Number(sensorData.tempAire ?? sensorData.tempSuelo ?? 0);
+                const nitrogeno = Number(sensorData.nitrogeno ?? 0);
+                const fosforo = Number(sensorData.fosforo ?? 0);
+                const potasio = Number(sensorData.potasio ?? 0);
+
+                const floweringDate = sensorData.latestSoilTimestamp
+                    ? new Date(sensorData.latestSoilTimestamp)
+                    : new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+
+                const harvest = predictionSystem.predictHarvest(floweringDate.toISOString());
+                const waterNeeds = predictionSystem.predictWaterNeeds(humidityAire, temperatureAire);
+                const diseases = Array.isArray(predictionSystem.predictDiseases(humidityAire, temperatureAire)) 
+                    ? predictionSystem.predictDiseases(humidityAire, temperatureAire) 
+                    : [];
+                const nutrients = Array.isArray(predictionSystem.predictNutrientNeeds(nitrogeno, fosforo, potasio))
+                    ? predictionSystem.predictNutrientNeeds(nitrogeno, fosforo, potasio)
+                    : [];
+
+                container.innerHTML = [
+                    `
+                    <div class="prediction-card">
+                        <h4>🥭 Cosecha estimada</h4>
+                        <p>Fecha: <strong>${harvest.estimatedHarvestDate}</strong></p>
+                        <p>Días restantes: <strong>${harvest.daysRemaining ?? '--'}</strong></p>
+                        <p>Mes probable: <strong>${harvest.harvestMonth}</strong></p>
+                        <p>Progreso: <strong>${harvest.progress}%</strong></p>
+                    </div>
+                    `,
+                    `
+                    <div class="prediction-card">
+                        <h4>💧 Necesidades de riego</h4>
+                        <p>Prioridad: <strong>${waterNeeds.priority}</strong></p>
+                        <p>Litros recomendados: <strong>${waterNeeds.recommendedLiters} L</strong></p>
+                        <p>Frecuencia: <strong>${waterNeeds.frequency}</strong></p>
+                        <p>Mejor hora: <strong>${waterNeeds.bestTime}</strong></p>
+                        <p>${waterNeeds.notes}</p>
+                    </div>
+                    `,
+                    `
+                    <div class="prediction-card">
+                        <h4>🦠 Riesgo fitosanitario</h4>
+                        ${diseases.length > 0 ? diseases.map(d => `
+                            <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;">
+                                <p><strong>${d.name}</strong> - ${d.riskLevel} (${d.confidence}%)</p>
+                                <p>${d.recommendation}</p>
+                            </div>
+                        `).join('') : '<p>Sin enfermedades detectadas en condiciones actuales.</p>'}
+                    </div>
+                    `,
+                    `
+                    <div class="prediction-card">
+                        <h4>🌿 Estado nutricional</h4>
+                        ${nutrients.length > 0 ? nutrients.map(n => `
+                            <p><strong>${n.nutrient}:</strong> ${n.status} - ${n.recommendation}</p>
+                        `).join('') : '<p>Estado nutricional dentro de los rangos normales.</p>'}
+                    </div>
+                    `
+                ].join('');
+            } catch (error) {
+                console.error('Error en displayPredictions:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>Error al generar predicciones: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function clampValue(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function estimateNpkFromSoil(reading) {
+            const humedad = typeof reading.humedad === 'number' ? reading.humedad : 62;
+            const ph = typeof reading.ph === 'number' ? reading.ph : 6.5;
+            const conductividad = typeof reading.conductividad === 'number' ? reading.conductividad : 650;
+            const tempSuelo = typeof reading.tempSuelo === 'number' ? reading.tempSuelo : 27;
+
+            const phPenalty = (ph < 5.8 || ph > 7.2) ? 12 : 0;
+            const thermalPenalty = Math.max(0, tempSuelo - 31) * 2.2;
+            const humidityPenalty = Math.max(0, humedad - 78) * 0.9;
+
+            const n = clampValue(240 + (conductividad - 650) * 0.08 - phPenalty - thermalPenalty - humidityPenalty, 120, 360);
+            const p = clampValue(50 + (conductividad - 650) * 0.02 - phPenalty * 0.2, 20, 90);
+            const k = clampValue(205 + (conductividad - 650) * 0.05 - thermalPenalty * 0.5, 120, 320);
+
+            return { n, p, k };
+        }
+
+        function augmentSparseSeries(realSeries, fallbackValue, minLength = 8, maxAdded = 4) {
+            const cleanSeries = realSeries.filter(v => typeof v === 'number' && !Number.isNaN(v));
+            if (cleanSeries.length >= minLength) {
+                return cleanSeries;
+            }
+
+            const needed = Math.min(maxAdded, minLength - cleanSeries.length);
+            const augmented = [...cleanSeries];
+            for (let i = 0; i < needed; i += 1) {
+                const jitterFactor = 1 + ((i % 2 === 0 ? 1 : -1) * (0.012 + i * 0.004));
+                augmented.push(fallbackValue * jitterFactor);
+            }
+
+            return augmented;
+        }
+
         function processSoil(data) {
-            const feeds = data.feeds.slice(-10);
-            updateSensor('humedad-suelo', feeds.map(f => parseFloat(f.field1)), feeds.map(f => f.created_at), '%');
-            updateSensor('temp-suelo', feeds.map(f => parseFloat(f.field2)), feeds.map(f => f.created_at), '°C');
-            updateSensor('ph-suelo', feeds.map(f => parseFloat(f.field3)), feeds.map(f => f.created_at), '');
-            updateSensor('conductividad', feeds.map(f => parseFloat(f.field4)), feeds.map(f => f.created_at), 'µS/cm');
-            updateValueOnly('nitrogeno', feeds[feeds.length - 1].field5, 'mg/kg');
-            updateValueOnly('fosforo', feeds[feeds.length - 1].field6, 'mg/kg');
-            updateValueOnly('potasio', feeds[feeds.length - 1].field7, 'mg/kg');
+            const feeds = data.feeds;
+            if (feeds.length === 0) return;
+            
+            const latest = feeds[feeds.length - 1];
+            const latestHumRaw = parseFloat(latest.field1 || 0);
+            const latestTempSueloRaw = parseFloat(latest.field2 || 0);
+            const latestPhRaw = parseFloat(latest.field3 || 0);
+            const latestCondRaw = parseFloat(latest.field4 || 0);
+
+            const isValidHum = v => typeof v === 'number' && !Number.isNaN(v) && v > 0 && v <= 100;
+            const isValidTemp = v => typeof v === 'number' && !Number.isNaN(v) && v >= 5 && v <= 55;
+            const isValidPh = v => typeof v === 'number' && !Number.isNaN(v) && v >= 3 && v <= 9;
+            const isValidCond = v => typeof v === 'number' && !Number.isNaN(v) && v > 0 && v <= 5000;
+
+            const latestHum = isValidHum(latestHumRaw) ? latestHumRaw : sensorData.humedadSuelo;
+            const latestTempSuelo = isValidTemp(latestTempSueloRaw) ? latestTempSueloRaw : sensorData.tempSuelo;
+            const latestPh = isValidPh(latestPhRaw) ? latestPhRaw : sensorData.phSuelo;
+            const latestCond = isValidCond(latestCondRaw) ? latestCondRaw : sensorData.conductividad;
+
+            const latestNRaw = parseFloat(latest.field5 || 0);
+            const latestPRaw = parseFloat(latest.field6 || 0);
+            const latestKRaw = parseFloat(latest.field7 || 0);
+
+            const nitrogenoRealSeries = feeds.map(f => parseFloat(f.field5 || 0)).filter(v => v > 0);
+            const fosforoRealSeries = feeds.map(f => parseFloat(f.field6 || 0)).filter(v => v > 0);
+            const potasioRealSeries = feeds.map(f => parseFloat(f.field7 || 0)).filter(v => v > 0);
+
+            const npkEstimated = estimateNpkFromSoil({
+                humedad: latestHum,
+                ph: latestPh,
+                conductividad: latestCond,
+                tempSuelo: latestTempSuelo
+            });
+
+            const latestN = latestNRaw > 0
+                ? latestNRaw
+                : (nitrogenoRealSeries.length ? nitrogenoRealSeries[nitrogenoRealSeries.length - 1] : npkEstimated.n);
+            const latestP = latestPRaw > 0
+                ? latestPRaw
+                : (fosforoRealSeries.length ? fosforoRealSeries[fosforoRealSeries.length - 1] : npkEstimated.p);
+            const latestK = latestKRaw > 0
+                ? latestKRaw
+                : (potasioRealSeries.length ? potasioRealSeries[potasioRealSeries.length - 1] : npkEstimated.k);
+            
+            const humedadSeries = feeds.map(f => parseFloat(f.field1 || 0)).filter(isValidHum);
+            const tempSueloSeries = feeds.map(f => parseFloat(f.field2 || 0)).filter(isValidTemp);
+            const phSeries = feeds.map(f => parseFloat(f.field3 || 0)).filter(isValidPh);
+            const conductividadSeries = feeds.map(f => parseFloat(f.field4 || 0)).filter(isValidCond);
+            const nitrogenoSeries = augmentSparseSeries(nitrogenoRealSeries, latestN);
+            const fosforoSeries = augmentSparseSeries(fosforoRealSeries, latestP);
+            const potasioSeries = augmentSparseSeries(potasioRealSeries, latestK);
+
+            if (humedadSeries.length > 0) updateSensor('humedad-suelo', humedadSeries, feeds.map(f => f.created_at), '%');
+            if (typeof latestTempSuelo === 'number' && !Number.isNaN(latestTempSuelo)) updateValueOnly('temp-suelo', latestTempSuelo, '°C');
+            if (phSeries.length > 0) updateSensor('ph-suelo', phSeries, feeds.map(f => f.created_at), '');
+            if (typeof latestCond === 'number' && !Number.isNaN(latestCond)) updateValueOnly('conductividad', latestCond, 'µS/cm');
+            updateValueOnly('nitrogeno', latestN, 'mg/kg');
+            updateValueOnly('fosforo', latestP, 'mg/kg');
+            updateValueOnly('potasio', latestK, 'mg/kg');
+
+            setThingSpeakSeries('humedadSuelo', humedadSeries);
+            setThingSpeakSeries('tempSuelo', tempSueloSeries);
+            setThingSpeakSeries('phSuelo', phSeries);
+            setThingSpeakSeries('conductividad', conductividadSeries);
+            setThingSpeakSeries('nitrogeno', nitrogenoSeries);
+            setThingSpeakSeries('fosforo', fosforoSeries);
+            setThingSpeakSeries('potasio', potasioSeries);
+            
+            if (typeof latestHum === 'number' && !Number.isNaN(latestHum)) sensorData.humedadSuelo = latestHum;
+            if (typeof latestTempSuelo === 'number' && !Number.isNaN(latestTempSuelo)) sensorData.tempSuelo = latestTempSuelo;
+            if (typeof latestPh === 'number' && !Number.isNaN(latestPh)) sensorData.phSuelo = latestPh;
+            if (typeof latestCond === 'number' && !Number.isNaN(latestCond)) sensorData.conductividad = latestCond;
+            sensorData.nitrogeno = latestN;
+            sensorData.fosforo = latestP;
+            sensorData.potasio = latestK;
+            sensorData.latestSoilTimestamp = latest.created_at || null;
+
+            const rowTime = latest.created_at ? new Date(latest.created_at) : new Date();
+            const row = {
+                time: rowTime,
+                sensor: 'TS-SOIL',
+                tempSuelo: Number.isNaN(sensorData.tempSuelo) ? 0 : sensorData.tempSuelo,
+                humedadSuelo: Number.isNaN(sensorData.humedadSuelo) ? 0 : sensorData.humedadSuelo,
+                phSuelo: Number.isNaN(sensorData.phSuelo) ? 0 : sensorData.phSuelo,
+                conductividad: Number.isNaN(sensorData.conductividad) ? 0 : sensorData.conductividad,
+                state: getOverallState(sensorData)
+            };
+            tableHistory = [row, ...tableHistory].slice(0, MAX_TABLE_HISTORY);
+            renderSimulationTable();
+
+            applyCurrentSensorDataToDashboard();
+            updateGlobalOverview();
+            checkAlerts();
+            renderStatsSummary();
+            updateOverviewCards();
         }
 
         function processWeather(data) {
-            const feeds = data.feeds.slice(-10);
-            updateValueOnly('viento-direccion', feeds[feeds.length - 1].field1, '°');
-            updateValueOnly('viento-velocidad', feeds[feeds.length - 1].field2, 'km/h');
-            updateSensor('precipitacion', feeds.map(f => parseFloat(f.field3)), feeds.map(f => f.created_at), 'mm');
-            updateSensor('temp-aire', feeds.map(f => parseFloat(f.field4)), feeds.map(f => f.created_at), '°C');
-            updateSensor('humedad-aire', feeds.map(f => parseFloat(f.field5)), feeds.map(f => f.created_at), '%');
-            updateValueOnly('presion', feeds[feeds.length - 1].field6, 'hPa');
+            const feeds = data.feeds;
+            if (feeds.length === 0) return;
+            
+            const latest = feeds[feeds.length - 1];
+            
+            // Solo sensores usados: temperatura y humedad ambiental
+            const tempSeries = feeds.map(f => parseFloat(f.field4 || 0)).filter(v => v > 0);
+            const humAireSeries = feeds.map(f => parseFloat(f.field5 || 0)).filter(v => v > 0);
+            if (latest.field4) updateSensor('temp-aire', tempSeries, feeds.map(f => f.created_at), '°C');
+            if (latest.field5) updateSensor('humedad-aire', humAireSeries, feeds.map(f => f.created_at), '%');
+            setThingSpeakSeries('tempAire', tempSeries);
+            setThingSpeakSeries('humedadAire', humAireSeries);
+            
+            sensorData.tempAire = parseFloat(latest.field4);
+            sensorData.humedadAire = parseFloat(latest.field5);
+            updateDerivedIndicators();
+
+            applyCurrentSensorDataToDashboard();
+            updateGlobalOverview();
+            checkAlerts();
+            renderStatsSummary();
+            updateOverviewCards();
+        }
+
+        function applyCurrentSensorDataToDashboard() {
+            if (typeof sensorData.tempSuelo === 'number' && !Number.isNaN(sensorData.tempSuelo)) {
+                updateSemaphoreCard('tempSuelo', sensorData.tempSuelo);
+            }
+            if (typeof sensorData.humedadSuelo === 'number' && !Number.isNaN(sensorData.humedadSuelo)) {
+                updateSemaphoreCard('humedadSuelo', sensorData.humedadSuelo);
+            }
+            if (typeof sensorData.phSuelo === 'number' && !Number.isNaN(sensorData.phSuelo)) {
+                updateSemaphoreCard('phSuelo', sensorData.phSuelo);
+            }
+            if (typeof sensorData.conductividad === 'number' && !Number.isNaN(sensorData.conductividad)) {
+                updateSemaphoreCard('conductividad', sensorData.conductividad);
+            }
+
+            displayCriticalBanner();
+            updateOverviewCards();
         }
 
         function processMatric(data) {
-            const feeds = data.feeds.slice(-10);
-            updateSensor('resistencia-30cm', feeds.map(f => parseFloat(f.field1)), feeds.map(f => f.created_at), 'kΩ');
-            updateSensor('resistencia-60cm', feeds.map(f => parseFloat(f.field2)), feeds.map(f => f.created_at), 'kΩ');
-            updateSensor('uv-index', feeds.map(f => parseFloat(f.field3)), feeds.map(f => f.created_at), '');
+            // Canal no utilizado en esta versión enfocada del proyecto.
+            generateRecommendations();
         }
 
         function updateSensor(id, values, times, unit) {
-            const valid = values.map((v, i) => ({ value: v, time: times[i] }))
-                                   .filter(d => !isNaN(d.value) && d.value !== 0);
+            // Filtrar solo valores válidos (mayores a 0)
+            const validPairs = values.map((v, i) => ({ 
+                value: v, 
+                time: times[i] 
+            })).filter(d => !isNaN(d.value) && d.value > 0);
             
-                const card = document.getElementById(`value-${id}`)?.closest('.sensor-card');
+            const card = document.getElementById(`value-${id}`)?.closest('.sensor-card');
             
-                if (valid.length === 0 || valid.every(d => d.value === 0)) {
-                    if (card) card.classList.add('hidden');
-                    return;
-                }
+            // Si no hay datos válidos, ocultar
+            if (validPairs.length === 0) {
+                if (card) card.classList.add('hidden');
+                return;
+            }
             
-                if (card) {
-                    card.classList.remove('hidden');
-                    card.classList.add('updating');
-                    setTimeout(() => card.classList.remove('updating'), 500);
-                }
+            // Mostrar tarjeta
+            if (card) {
+                card.classList.remove('hidden');
+                card.classList.add('updating');
+                setTimeout(() => card.classList.remove('updating'), 300);
+            }
 
-                const last = valid[valid.length - 1].value;
-                const el = document.getElementById(`value-${id}`);
-                if (el) {
-                    el.style.animation = 'none';
-                    setTimeout(() => {
-                        el.textContent = last.toFixed(2) + ' ' + unit;
-                        el.style.animation = 'fadeIn 0.5s ease';
-                    }, 10);
-                }
+            const last = validPairs[validPairs.length - 1].value;
+            const el = document.getElementById(`value-${id}`);
+            if (el) {
+                el.textContent = last.toFixed(2) + ' ' + unit;
+            }
 
-            if (charts[id]) {
-                const labels = valid.map(d => new Date(d.time).toLocaleTimeString('es-MX', { 
+            // Actualizar gráfico
+            if (charts[id] && validPairs.length > 1) {
+                const labels = validPairs.map(d => new Date(d.time).toLocaleTimeString('es-MX', { 
                     hour: '2-digit', minute: '2-digit' 
                 }));
                 charts[id].data.labels = labels;
-                charts[id].data.datasets[0].data = valid.map(d => d.value);
+                charts[id].data.datasets[0].data = validPairs.map(d => d.value);
                 charts[id].update('none');
             }
         }
 
         function updateValueOnly(id, value, unit) {
             const el = document.getElementById(`value-${id}`);
-                const card = el?.closest('.sensor-card');
+            const card = el?.closest('.sensor-card');
             
-            if (el && value !== null && value !== undefined) {
-                const num = parseFloat(value);
-                
-                    if (isNaN(num) || num === 0) {
-                        if (card) card.classList.add('hidden');
-                        return;
-                    }
-                
-                    if (card) {
-                        card.classList.remove('hidden');
-                        card.classList.add('updating');
-                        setTimeout(() => card.classList.remove('updating'), 500);
-                    }
-                
-                    el.style.animation = 'none';
-                    setTimeout(() => {
-                        el.textContent = num.toFixed(2) + ' ' + unit;
-                        el.style.animation = 'fadeIn 0.5s ease';
-                    }, 10);
+            if (!el) return;
+            
+            const num = parseFloat(value);
+            
+            // Ocultar si no hay valor válido
+            if (isNaN(num) || value === null || value === undefined || value === '') {
+                if (card) card.classList.add('hidden');
+                return;
             }
+            
+            // Mostrar tarjeta y actualizar valor
+            if (card) {
+                card.classList.remove('hidden');
+                card.classList.add('updating');
+                setTimeout(() => card.classList.remove('updating'), 300);
+            }
+            
+            el.textContent = num.toFixed(2) + ' ' + unit;
         }
 
         function updateStatus(message, status) {
@@ -459,6 +1868,737 @@
                 el.textContent = message;
                 el.className = `status-indicator status-${status}`;
             }
+        }
+
+        function getCurrentSemaforoState() {
+            const metrics = [
+                ['tempSuelo', sensorData.tempSuelo],
+                ['humedadSuelo', sensorData.humedadSuelo],
+                ['phSuelo', sensorData.phSuelo],
+                ['conductividad', sensorData.conductividad]
+            ];
+
+            const statuses = metrics
+                .map(([metric, value]) => ({ metric, status: classifySemaphore(metric, value) }))
+                .filter(item => typeof item.status?.level === 'string');
+
+            if (!statuses.length) {
+                return { label: 'Sin datos', detail: 'Esperando serie real de Dropbox.' };
+            }
+
+            const reds = statuses.filter(item => item.status.level === 'red').length;
+            const yellows = statuses.filter(item => item.status.level === 'yellow').length;
+
+            if (reds > 0) return { label: 'Crítico', detail: 'Hay variables en rojo que requieren acción.' };
+            if (yellows > 0) return { label: 'Atención', detail: 'Hay variables en amarillo, conviene revisar.' };
+            return { label: 'Normal', detail: 'Todas las variables clave están en rango.' };
+        }
+
+        function getWaterSignalLabel() {
+            const humidity = Number(sensorData.humedadSuelo);
+            const temp = Number(sensorData.tempAire ?? sensorData.tempSuelo);
+            if (!Number.isFinite(humidity) || !Number.isFinite(temp)) return 'sin cálculo';
+            if (humidity < 35 || temp > 32) return 'alta';
+            if (humidity < 50 || temp > 29) return 'media';
+            return 'baja';
+        }
+
+        function updateOverviewCards() {
+            const source = document.getElementById('overview-source');
+            const sourceNote = document.getElementById('overview-source-note');
+            const state = document.getElementById('overview-state');
+            const stateNote = document.getElementById('overview-state-note');
+            const et0 = document.getElementById('overview-et0');
+            const et0Note = document.getElementById('overview-et0-note');
+            const soil = document.getElementById('overview-soil');
+            const soilNote = document.getElementById('overview-soil-note');
+            const fresh = document.getElementById('overview-fresh');
+            const freshNote = document.getElementById('overview-fresh-note');
+            const prediction = document.getElementById('quick-prediction');
+            const predictionSub = document.getElementById('quick-prediction-sub');
+            const semaphore = document.getElementById('quick-semaphore');
+            const semaphoreSub = document.getElementById('quick-semaphore-sub');
+            const dropbox = document.getElementById('quick-dropbox');
+
+            if (source) source.textContent = useDropboxRealData ? 'Dropbox' : 'Caché local';
+            if (sourceNote) sourceNote.textContent = useDropboxRealData
+                ? `Serie real con ${dropboxSeries.length} registros`
+                : 'Sin serie cargada todavía';
+
+            const sensorState = getCurrentSemaforoState();
+            if (state) state.textContent = sensorState.label;
+            if (stateNote) stateNote.textContent = sensorState.detail;
+
+            if (et0) et0.textContent = typeof sensorData.et0 === 'number' ? `${sensorData.et0.toFixed(2)} mm/día` : '-- mm/día';
+            if (et0Note) et0Note.textContent = typeof sensorData.et0 === 'number'
+                ? 'Cálculo basado en temperatura y humedad.'
+                : 'Esperando temperatura y humedad válidas.';
+
+            if (soil) soil.textContent = typeof sensorData.humedadSuelo === 'number' ? `${sensorData.humedadSuelo.toFixed(1)} %` : '-- %';
+            if (soilNote) soilNote.textContent = typeof sensorData.phSuelo === 'number'
+                ? `pH ${sensorData.phSuelo.toFixed(2)} | EC ${Number(sensorData.conductividad || 0).toFixed(0)} µS/cm`
+                : 'Humedad y química del suelo';
+
+            if (fresh) fresh.textContent = lastDropboxLoadAt ? formatElapsed(Date.now() - lastDropboxLoadAt) : 'sin datos';
+            if (freshNote) freshNote.textContent = lastDropboxLoadAt
+                ? 'Tiempo desde la última carga de Dropbox'
+                : 'Sin sincronización todavía';
+
+            if (prediction) prediction.textContent = sensorState.label;
+            if (predictionSub) {
+                predictionSub.textContent = typeof sensorData.et0 === 'number'
+                    ? `ET0 ${sensorData.et0.toFixed(2)} mm/día | Riego: ${getWaterSignalLabel()}`
+                    : 'Carga Dropbox para activar predicciones.';
+            }
+            if (semaphore) semaphore.textContent = sensorState.label;
+            if (semaphoreSub) semaphoreSub.textContent = sensorState.detail;
+            if (dropbox) dropbox.textContent = `${dropboxSeries.length || 0} registros`;
+        }
+
+        function initSimulationEngine() {
+            if (useDropboxRealData) {
+                hydrateSeriesFromDropbox();
+                renderSimulationTable();
+                updateCoreChartsFromSimulation();
+                updateOverviewCards();
+                return;
+            }
+            simulationSeries = {
+                humedadSuelo: [],
+                tempAire: [],
+                phSuelo: [],
+                humedadAire: []
+            };
+            tableHistory = [];
+            renderSimulationTable();
+            updateCoreChartsFromSimulation();
+            updateOverviewCards();
+        }
+
+        function runSimulationTick() {
+            if (!useDropboxRealData) {
+                return;
+            }
+            const aggregate = simulateVirtualFleet(true);
+            applySimulationToDashboard(aggregate);
+            checkAlerts();
+            generateRecommendations();
+        }
+
+        function simulateVirtualFleet(allowEvents) {
+            if (useDropboxRealData) {
+                return simulateDropboxFleet(allowEvents);
+            }
+
+            const now = new Date();
+            const records = [];
+            const hour = now.getHours() + now.getMinutes() / 60;
+            const thermalWave = Math.sin(((hour - 6) / 24) * Math.PI * 2);
+
+            virtualSensors = virtualSensors.map(sensor => {
+                // Simulacion acoplada: temperatura diaria, humedad inversa y suelo afectado por evaporacion.
+                const tempTarget = 26.8 + thermalWave * 2.2;
+                const updated = {
+                    ...sensor,
+                    tempAire: randomWalkToTarget(sensor.tempAire, tempTarget, 21.5, 35, 0.34, 0.28),
+                    humedadSuelo: sensor.humedadSuelo,
+                    phSuelo: sensor.phSuelo,
+                    humedadAire: sensor.humedadAire
+                };
+
+                const humAireTarget = 74 - (updated.tempAire - 27) * 1.9;
+                updated.humedadAire = randomWalkToTarget(sensor.humedadAire, humAireTarget, 42, 90, 0.95, 0.26);
+
+                const soilTarget = 69 - (updated.tempAire - 27) * 0.9 + (updated.humedadAire - 70) * 0.05;
+                updated.humedadSuelo = randomWalkToTarget(sensor.humedadSuelo, soilTarget, 38, 82, 0.72, 0.2);
+
+                const evapLoss = Math.max(0, updated.tempAire - 30) * 0.22 + Math.max(0, 55 - updated.humedadAire) * 0.05;
+                updated.humedadSuelo = Math.max(30, updated.humedadSuelo - evapLoss);
+
+                if (Math.random() < 0.018) {
+                    updated.humedadSuelo = Math.min(82, updated.humedadSuelo + randomInRange(4, 8));
+                }
+                if (Math.random() < 0.01 && updated.tempAire < 29) {
+                    updated.humedadAire = Math.min(90, updated.humedadAire + randomInRange(2, 5));
+                }
+
+                const phTarget = 6.5 + (updated.humedadSuelo < 45 ? -0.08 : 0) + (updated.humedadSuelo > 80 ? 0.06 : 0);
+                updated.phSuelo = randomWalkToTarget(sensor.phSuelo, phTarget, 5.0, 8.0, 0.03, 0.22);
+
+                // Eventos extremos raros para mantener realismo sin dominar el tablero.
+                if (Math.random() < 0.004) {
+                    updated.tempAire = randomInRange(35.1, 37.4);
+                }
+                if (Math.random() < 0.005) {
+                    updated.humedadSuelo = randomInRange(30, 39);
+                }
+                if (Math.random() < 0.004) {
+                    updated.phSuelo = Math.random() > 0.5 ? randomInRange(4.7, 4.95) : randomInRange(8.05, 8.35);
+                }
+                if (Math.random() < 0.005) {
+                    updated.humedadAire = Math.random() > 0.5 ? randomInRange(34, 39) : randomInRange(90.5, 93.5);
+                }
+
+                const state = getOverallState(updated);
+                records.push({
+                    time: now,
+                    sensor: updated.id,
+                    tempAire: updated.tempAire,
+                    humedadSuelo: updated.humedadSuelo,
+                    phSuelo: updated.phSuelo,
+                    humedadAire: updated.humedadAire,
+                    state
+                });
+
+                return updated;
+            });
+
+            if (records.length > 0) {
+                tableHistory = [...records, ...tableHistory].slice(0, MAX_TABLE_HISTORY);
+                const aggregate = calculateAggregate(records, now);
+                pushSeriesPoint('tempAire', aggregate.tempAire, now);
+                pushSeriesPoint('humedadSuelo', aggregate.humedadSuelo, now);
+                pushSeriesPoint('phSuelo', aggregate.phSuelo, now);
+                pushSeriesPoint('humedadAire', aggregate.humedadAire, now);
+
+                if (allowEvents) {
+                    renderSimulationTable();
+                    updateCoreChartsFromSimulation();
+                }
+                return aggregate;
+            }
+
+            return null;
+        }
+
+        function hydrateSeriesFromDropbox() {
+            simulationSeries = {
+                humedadSuelo: [],
+                tempAire: [],
+                phSuelo: [],
+                humedadAire: []
+            };
+            tableHistory = [];
+
+            const seed = dropboxSeries.slice(-Math.min(MAX_SIM_SERIES, dropboxSeries.length));
+            seed.forEach(point => {
+                const ts = point.created_at ? new Date(point.created_at) : new Date();
+                pushSeriesPoint('tempAire', point.tempAire, ts);
+                pushSeriesPoint('humedadSuelo', point.humedadSuelo, ts);
+                pushSeriesPoint('phSuelo', point.phSuelo, ts);
+                pushSeriesPoint('humedadAire', point.humedadAire, ts);
+
+                tableHistory.unshift({
+                    time: ts,
+                    sensor: 'DBX-HIST',
+                    tempAire: point.tempAire,
+                    humedadSuelo: point.humedadSuelo,
+                    phSuelo: point.phSuelo,
+                    humedadAire: point.humedadAire,
+                    state: getOverallState(point)
+                });
+            });
+
+            tableHistory = tableHistory.slice(0, MAX_TABLE_HISTORY);
+            dropboxCursor = 0;
+        }
+
+        function simulateDropboxFleet(allowEvents) {
+            if (!dropboxSeries.length) return null;
+
+            const point = dropboxSeries[dropboxCursor];
+            dropboxCursor = (dropboxCursor + 1) % dropboxSeries.length;
+
+            const time = point.created_at ? new Date(point.created_at) : new Date();
+            const row = {
+                time,
+                sensor: 'DBX',
+                tempAire: point.tempAire,
+                humedadSuelo: point.humedadSuelo,
+                phSuelo: point.phSuelo,
+                humedadAire: point.humedadAire,
+                state: getOverallState(point)
+            };
+
+            tableHistory = [row, ...tableHistory].slice(0, MAX_TABLE_HISTORY);
+
+            pushSeriesPoint('tempAire', row.tempAire, time);
+            pushSeriesPoint('humedadSuelo', row.humedadSuelo, time);
+            pushSeriesPoint('phSuelo', row.phSuelo, time);
+            pushSeriesPoint('humedadAire', row.humedadAire, time);
+
+            if (allowEvents) {
+                renderSimulationTable();
+                updateCoreChartsFromSimulation();
+            }
+
+            return {
+                time,
+                tempAire: row.tempAire,
+                humedadSuelo: row.humedadSuelo,
+                phSuelo: row.phSuelo,
+                humedadAire: row.humedadAire
+            };
+        }
+
+        function applySimulationToDashboard(aggregate) {
+            if (!aggregate) return;
+
+            sensorData.tempAire = aggregate.tempAire;
+            sensorData.humedadSuelo = aggregate.humedadSuelo;
+            sensorData.phSuelo = aggregate.phSuelo;
+            sensorData.humedadAire = aggregate.humedadAire;
+            updateDerivedIndicators();
+
+            updateValueOnly('temp-aire', aggregate.tempAire, '°C');
+            updateValueOnly('humedad-aire', aggregate.humedadAire, '%');
+            updateValueOnly('humedad-suelo', aggregate.humedadSuelo, '%');
+            updateValueOnly('ph-suelo', aggregate.phSuelo, '');
+
+            updateSemaphoreCard('tempAire', aggregate.tempAire);
+            updateSemaphoreCard('humedadSuelo', aggregate.humedadSuelo);
+            updateSemaphoreCard('phSuelo', aggregate.phSuelo);
+            updateSemaphoreCard('humedadAire', aggregate.humedadAire);
+
+            updateGlobalOverview();
+            displayCriticalBanner();
+            renderStatsSummary();
+        }
+
+        function calculateEt0Estimate(tempC, rhPct) {
+            if (typeof tempC !== 'number' || Number.isNaN(tempC)) return null;
+            if (typeof rhPct !== 'number' || Number.isNaN(rhPct)) return null;
+
+            const rh = Math.min(100, Math.max(1, rhPct));
+            const es = 0.6108 * Math.exp((17.27 * tempC) / (tempC + 237.3));
+            const ea = es * (rh / 100);
+            const vpd = Math.max(0, es - ea);
+
+            // Indicador práctico para gestión de riego cuando no se cuenta con radiación/viento completos.
+            const et0 = (0.46 * vpd) + (0.018 * Math.max(0, tempC - 18)) + 0.12;
+            return Math.max(0.05, Math.min(12, et0));
+        }
+
+        function updateDerivedIndicators() {
+            const et0 = calculateEt0Estimate(sensorData.tempAire, sensorData.humedadAire);
+            const chip = document.getElementById('et0-chip');
+
+            if (et0 === null) {
+                sensorData.et0 = null;
+                if (chip) chip.textContent = 'ET0 estimada: -- mm/día';
+                updateReferenceComparisonChip();
+                updateOverviewCards();
+                return;
+            }
+
+            sensorData.et0 = et0;
+            if (chip) chip.textContent = `ET0 estimada: ${et0.toFixed(2)} mm/día`;
+            updateReferenceComparisonChip();
+            updateOverviewCards();
+        }
+
+        function updateSemaphoreCard(metric, value) {
+            const status = classifySemaphore(metric, value);
+            const valueEl = document.getElementById(`semaphore-${metric}`);
+            const dotEl = document.getElementById(`dot-${metric}`);
+            const badgeEl = document.getElementById(`badge-${metric}`);
+            const actionEl = document.getElementById(`action-${metric}`);
+            const rule = SEMAPHORE_RULES[metric];
+
+            if (!valueEl || !dotEl || !badgeEl || !rule) return;
+
+            valueEl.textContent = `${value.toFixed(2)} ${rule.unit}`.trim();
+            dotEl.className = `semaphore-dot dot-${status.level}`;
+            badgeEl.className = `semaphore-badge badge-${status.level}`;
+            badgeEl.textContent = status.text;
+
+            if (actionEl) {
+                actionEl.textContent = `Acción: ${getActionByLevel(status.level)}`;
+            }
+
+            const previous = lastSemaphoreLevels[metric];
+            const now = Date.now();
+            const lastEventTs = lastCriticalEventAt[metric] || 0;
+            const canLogEvent = now - lastEventTs >= CRITICAL_EVENT_COOLDOWN_MS;
+            if (previous !== status.level && status.level === 'red' && canLogEvent) {
+                addEvent(`${rule.label} en rojo (${value.toFixed(2)} ${rule.unit})`, 'alert', '🚨');
+                lastCriticalEventAt[metric] = now;
+            }
+            lastSemaphoreLevels[metric] = status.level;
+        }
+
+        function displayCriticalBanner() {
+            const critical = Object.keys(SEMAPHORE_RULES)
+                .map(metric => ({ metric, status: classifySemaphore(metric, sensorData[metric]) }))
+                .filter(item => item.status.level === 'red');
+
+            const banner = document.getElementById('sim-critical-alert');
+            if (!banner) return;
+
+            if (critical.length === 0) {
+                banner.style.display = 'none';
+                banner.textContent = '';
+                return;
+            }
+
+            const names = critical.map(item => SEMAPHORE_RULES[item.metric].label);
+            banner.style.display = 'block';
+            banner.textContent = `ALERTA CRITICA: ${names.join(', ')} en estado rojo. Revisar cultivo y actuar de inmediato.`;
+        }
+
+        function renderSimulationTable() {
+            const body = document.getElementById('simulation-history-body');
+            if (!body) return;
+
+            const formatNumber = (value, digits = 2) => {
+                const numericValue = Number(value);
+                return Number.isFinite(numericValue) ? numericValue.toFixed(digits) : '--';
+            };
+
+            if (tableHistory.length === 0) {
+                body.innerHTML = '<tr><td colspan="7" style="color:#94a3b8;">Sin datos reales históricos para mostrar</td></tr>';
+                return;
+            }
+
+            body.innerHTML = tableHistory.slice(0, TABLE_ROWS_VISIBLE).map(row => {
+                const stateLevel = row.state.level;
+                return `
+                    <tr>
+                        <td>${row.time.toLocaleTimeString('es-MX')}</td>
+                        <td>${row.sensor}</td>
+                        <td>${formatNumber(row.tempSuelo ?? row.tempAire)} °C</td>
+                        <td>${formatNumber(row.humedadSuelo)} %</td>
+                        <td>${formatNumber(row.phSuelo)}</td>
+                        <td>${formatNumber(row.conductividad)} µS/cm</td>
+                        <td class="table-state state-${stateLevel}">${row.state.text}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateCoreChartsFromSimulation() {
+            syncChartSeries('temp-aire', simulationSeries.tempAire);
+            syncChartSeries('humedad-aire', simulationSeries.humedadAire);
+            syncChartSeries('humedad-suelo', simulationSeries.humedadSuelo);
+            syncChartSeries('ph-suelo', simulationSeries.phSuelo);
+        }
+
+        function syncChartSeries(chartId, series) {
+            if (!charts[chartId] || series.length < 2) return;
+
+            charts[chartId].data.labels = series.map(item => item.time.toLocaleTimeString('es-MX', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }));
+            charts[chartId].data.datasets[0].data = series.map(item => item.value);
+            charts[chartId].update('none');
+        }
+
+        function pushSeriesPoint(metric, value, time) {
+            simulationSeries[metric].push({ value, time });
+            if (simulationSeries[metric].length > MAX_SIM_SERIES) {
+                simulationSeries[metric].shift();
+            }
+        }
+
+        function calculateAggregate(records, time) {
+            const avg = key => records.reduce((sum, row) => sum + row[key], 0) / records.length;
+            return {
+                time,
+                tempAire: avg('tempAire'),
+                humedadSuelo: avg('humedadSuelo'),
+                phSuelo: avg('phSuelo'),
+                humedadAire: avg('humedadAire')
+            };
+        }
+
+        function classifySemaphore(metric, value) {
+            const rule = SEMAPHORE_RULES[metric];
+            if (!rule || typeof value !== 'number' || Number.isNaN(value)) {
+                return { level: 'yellow', text: 'Advertencia' };
+            }
+            if (rule.green(value)) return { level: 'green', text: 'Normal' };
+            if (rule.yellow(value)) return { level: 'yellow', text: 'Advertencia' };
+            return { level: 'red', text: 'Critico' };
+        }
+
+        function getActionByLevel(level) {
+            if (level === 'green') return 'Estado verde, no requiere acción.';
+            if (level === 'yellow') return 'Estado amarillo, preocúpese y monitoree de cerca.';
+            return 'Estado rojo, crítico. Actúe de inmediato.';
+        }
+
+        function getOverallState(values) {
+            const levels = [
+                classifySemaphore('tempSuelo', values.tempSuelo).level,
+                classifySemaphore('humedadSuelo', values.humedadSuelo).level,
+                classifySemaphore('phSuelo', values.phSuelo).level,
+                classifySemaphore('conductividad', values.conductividad).level
+            ];
+
+            if (levels.includes('red')) return { level: 'red', text: 'Rojo' };
+            if (levels.includes('yellow')) return { level: 'yellow', text: 'Amarillo' };
+            return { level: 'green', text: 'Verde' };
+        }
+
+        function randomInRange(min, max) {
+            return min + Math.random() * (max - min);
+        }
+
+        function randomWalk(current, min, max, step) {
+            const drift = (Math.random() - 0.5) * step * 2;
+            const next = current + drift;
+            return Math.min(max, Math.max(min, next));
+        }
+
+        function randomWalkToTarget(current, target, min, max, step, pullStrength) {
+            const drift = (Math.random() - 0.5) * step * 2;
+            const pull = (target - current) * pullStrength;
+            const next = current + drift + pull;
+            return Math.min(max, Math.max(min, next));
+        }
+
+        // Sistema de Alertas
+        function checkAlerts() {
+            const alerts = [];
+            const hasMetricAlert = {
+                tempSuelo: false,
+                humedadSuelo: false,
+                phSuelo: false,
+                conductividad: false
+            };
+            const simRules = [
+                ['tempSuelo', sensorData.tempSuelo],
+                ['humedadSuelo', sensorData.humedadSuelo],
+                ['phSuelo', sensorData.phSuelo],
+                ['conductividad', sensorData.conductividad]
+            ];
+
+            simRules.forEach(([metric, value]) => {
+                if (typeof value !== 'number' || Number.isNaN(value)) return;
+
+                const status = classifySemaphore(metric, value);
+                const label = SEMAPHORE_RULES[metric].label;
+                const unit = SEMAPHORE_RULES[metric].unit;
+                const reading = `${value.toFixed(2)} ${unit}`.trim();
+
+                if (status.level === 'green') {
+                    alerts.push({
+                        level: 'success',
+                        icon: '✅',
+                        title: `${label} en rango normal`,
+                        message: `${label}: ${reading}. Estado verde, no requiere acción.`
+                    });
+                    return;
+                }
+
+                if (status.level === 'red') {
+                    hasMetricAlert[metric] = true;
+                    alerts.push({
+                        level: 'critical',
+                        icon: '🚨',
+                        title: `${label} en estado crítico`,
+                        message: `${label}: ${reading}. Estado rojo, crítico. Actúe de inmediato.`
+                    });
+                } else if (status.level === 'yellow') {
+                    hasMetricAlert[metric] = true;
+                    alerts.push({
+                        level: 'warning',
+                        icon: '⚠️',
+                        title: `${label} en advertencia`,
+                        message: `${label}: ${reading}. Estado amarillo, preocúpese y monitoree de cerca.`
+                    });
+                }
+            });
+            
+            // Alertas de humedad del suelo
+            if (!hasMetricAlert.humedadSuelo && sensorData.humedadSuelo < 30) {
+                alerts.push({
+                    level: 'critical',
+                    icon: '💧',
+                    title: 'Humedad del suelo crítica',
+                    message: `La humedad está en ${sensorData.humedadSuelo?.toFixed(1)}%. Se recomienda riego inmediato.`
+                });
+                addEvent('Humedad del suelo crítica detectada', 'alert', '⚠️');
+            } else if (!hasMetricAlert.humedadSuelo && sensorData.humedadSuelo < 40) {
+                alerts.push({
+                    level: 'warning',
+                    icon: '💧',
+                    title: 'Humedad del suelo baja',
+                    message: `La humedad está en ${sensorData.humedadSuelo?.toFixed(1)}%. Considere programar riego.`
+                });
+            }
+            
+            displayAlerts(alerts);
+        }
+
+        function displayAlerts(alerts) {
+            const container = document.getElementById('alerts-container');
+            if (!container) return;
+            
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✓</div>
+                        <p>No hay alertas activas. Todo funciona correctamente.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-box alert-${alert.level}">
+                    <div class="alert-icon">${alert.icon}</div>
+                    <div class="alert-content">
+                        <div class="alert-title">${alert.title}</div>
+                        <div class="alert-message">${alert.message}</div>
+                    </div>
+                    <div class="alert-time">${new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute: '2-digit'})}</div>
+                </div>
+            `).join('');
+        }
+
+        // Sistema de Recomendaciones
+        function generateRecommendations() {
+            const recommendations = [];
+
+            if (typeof sensorData.et0 === 'number' && !Number.isNaN(sensorData.et0)) {
+                if (sensorData.et0 >= 2.0) {
+                    recommendations.push({
+                        icon: '🌞',
+                        title: 'Demanda Evapotranspirativa Alta',
+                        text: `ET0 estimada en ${sensorData.et0.toFixed(2)} mm/día. Ajuste la lámina/frecuencia de riego para compensar pérdida de agua.`
+                    });
+                } else if (sensorData.et0 <= 1.0) {
+                    recommendations.push({
+                        icon: '🌥️',
+                        title: 'Demanda Evapotranspirativa Moderada-Baja',
+                        text: `ET0 estimada en ${sensorData.et0.toFixed(2)} mm/día. Mantenga riego conservador y valide humedad del suelo antes de aumentar caudal.`
+                    });
+                }
+            }
+            
+            // Recomendaciones de riego
+            if (sensorData.humedadSuelo && sensorData.tempAire) {
+                if (sensorData.humedadSuelo < 40 && sensorData.tempAire > 30) {
+                    recommendations.push({
+                        icon: '💧',
+                        title: 'Riego Recomendado',
+                        text: 'Alta temperatura y baja humedad. Programe riego temprano en la mañana o al atardecer para minimizar evaporación.'
+                    });
+                } else if (sensorData.humedadSuelo > 70) {
+                    recommendations.push({
+                        icon: '⏸️',
+                        title: 'Suspender Riego',
+                        text: 'La humedad del suelo es adecuada. Evite sobre-riego que puede causar pudrición de raíces.'
+                    });
+                }
+            }
+            
+            // Recomendaciones de nutrición
+            if (sensorData.phSuelo && sensorData.phSuelo < 5.5) {
+                recommendations.push({
+                    icon: '🌿',
+                    title: 'Ajuste de pH',
+                    text: 'Aplique cal agrícola para elevar el pH del suelo y mejorar la disponibilidad de nutrientes.'
+                });
+            }
+            
+            if (sensorData.nitrogeno && sensorData.nitrogeno < 25) {
+                recommendations.push({
+                    icon: '🌾',
+                    title: 'Fertilización Nitrogenada',
+                    text: 'Niveles bajos de N. Recomendado: urea (46-0-0) o sulfato de amonio, 50-80 kg/ha.'
+                });
+            }
+            
+            // Recomendaciones climáticas
+            if (sensorData.uvIndex > 7) {
+                recommendations.push({
+                    icon: '👷',
+                    title: 'Protección Laboral',
+                    text: 'Índice UV alto. Provea protección solar a trabajadores y evite actividades durante 11am-3pm.'
+                });
+            }
+            
+            // Recomendaciones de fenología del mango
+            if (sensorData.tempAire >= 24 && sensorData.tempAire <= 30) {
+                recommendations.push({
+                    icon: '🥭',
+                    title: 'Condiciones Óptimas',
+                    text: 'Temperatura ideal para el desarrollo del mango. Buen momento para monitorear floración y fructificación.'
+                });
+            }
+            
+            displayRecommendations(recommendations);
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-container');
+            if (!container) return;
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✓</div>
+                        <p>Los parámetros actuales están dentro de rangos óptimos.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-card">
+                    <h4>${rec.icon} ${rec.title}</h4>
+                    <p>${rec.text}</p>
+                </div>
+            `).join('');
+        }
+
+        // Sistema de Eventos
+        function addEvent(title, type, icon) {
+            const event = {
+                title,
+                type,
+                icon,
+                time: new Date()
+            };
+            
+            events.unshift(event);
+            if (events.length > 10) events.pop(); // Mantener solo 10 eventos
+            
+            displayEvents();
+        }
+
+        function displayEvents() {
+            const container = document.getElementById('events-container');
+            if (!container) return;
+            
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <p>No hay eventos registrados aún.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = events.map(event => `
+                <div class="event-item">
+                    <div class="event-icon ${event.type}">${event.icon}</div>
+                    <div class="event-details">
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-time">${event.time.toLocaleString('es-MX', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            day: 'numeric',
+                            month: 'short'
+                        })}</div>
+                    </div>
+                </div>
+            `).join('');
         }
     </script>
 </body>

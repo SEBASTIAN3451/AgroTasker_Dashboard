@@ -1,0 +1,203 @@
+{
+  "app": {
+    "name": "AgroTasker",
+    "version": "2.0",
+    "description": "Sistema Inteligente de Cultivo de Mango"
+  },
+  "server": {
+    "host": "localhost",
+    "port": 8080,
+    "cache_time": 60,
+    "timeout": 5
+  },
+  "thingspeak": {
+    "soil": {
+      "id": "2791076",
+      "key": "ILV07NI5I2GUTD41",
+      "name": "Sensores del Suelo",
+      "fields": {
+        "field1": "Humedad Suelo (%)",
+        "field2": "Temperatura Suelo (°C)",
+        "field3": "pH Suelo",
+        "field4": "Conductividad (µS/cm)",
+        "field5": "Nitrógeno (mg/kg)",
+        "field6": "Fósforo (mg/kg)",
+        "field7": "Potasio (mg/kg)"
+      }
+    },
+    "weather": {
+      "id": "2791069",
+      "key": "MN0TNLAPB9EF24DQ",
+      "name": "Sensores Meteorológicos",
+      "fields": {
+        "field1": "Dirección Viento (°)",
+        "field2": "Velocidad Viento (km/h)",
+        "field3": "Precipitación (mm)",
+        "field4": "Temperatura Aire (°C)",
+        "field5": "Humedad Aire (%)",
+        "field6": "Presión (hPa)"
+      }
+    },
+    "matric_uv": {
+      "id": "2906294",
+      "key": "TK8VXZFSN2T5GNTL",
+      "name": "Potencial Mátrico y UV",
+      "fields": {
+        "field1": "Resistencia 30cm (kΩ)",
+        "field2": "Resistencia 60cm (kΩ)",
+        "field3": "Índice UV"
+      }
+    }
+  },
+  "agriculture": {
+    "crop": "Mango",
+    "optimal_ranges": {
+      "temperature": {
+        "min": 24,
+        "max": 32,
+        "unit": "°C"
+      },
+      "humidity": {
+        "min": 50,
+        "max": 75,
+        "unit": "%"
+      },
+      "soil_moisture": {
+        "min": 35,
+        "max": 60,
+        "unit": "%"
+      },
+      "ph": {
+        "min": 5.5,
+        "max": 7.0
+      },
+      "conductivity": {
+        "min": 200,
+        "max": 800,
+        "unit": "µS/cm"
+      }
+    },
+    "growth_cycle": {
+      "flowering_to_harvest": 210,
+      "unit": "days"
+    },
+    "nutrients": {
+      "nitrogen": {
+        "min": 200,
+        "max": 300,
+        "unit": "mg/kg"
+      },
+      "phosphorus": {
+        "min": 40,
+        "max": 60,
+        "unit": "mg/kg"
+      },
+      "potassium": {
+        "min": 180,
+        "max": 250,
+        "unit": "mg/kg"
+      }
+    }
+  },
+  "irrigation": {
+    "default_schedule": {
+      "enabled": true,
+      "start_time": "05:00",
+      "duration": 60,
+      "frequency": "daily"
+    },
+    "auto_irrigation": {
+      "enabled": true,
+      "critical_threshold": 35,
+      "normal_threshold": 50
+    }
+  },
+  "tasks": {
+    "types": [
+      {
+        "id": "riego",
+        "name": "Riego",
+        "emoji": "🚿",
+        "color": "#3182ce"
+      },
+      {
+        "id": "fertilizacion",
+        "name": "Fertilización",
+        "emoji": "🌿",
+        "color": "#276749"
+      },
+      {
+        "id": "poda",
+        "name": "Poda",
+        "emoji": "✂️",
+        "color": "#744210"
+      },
+      {
+        "id": "fumigacion",
+        "name": "Fumigación",
+        "emoji": "🧪",
+        "color": "#c53030"
+      },
+      {
+        "id": "cosecha",
+        "name": "Cosecha",
+        "emoji": "🥭",
+        "color": "#f6ad55"
+      }
+    ],
+    "priorities": [
+      {
+        "id": "baja",
+        "name": "Baja",
+        "color": "#cbd5e0"
+      },
+      {
+        "id": "normal",
+        "name": "Normal",
+        "color": "#4299e1"
+      },
+      {
+        "id": "alta",
+        "name": "Alta",
+        "color": "#f56565"
+      }
+    ]
+  },
+  "predictions": {
+    "diseases": [
+      {
+        "name": "Antracnosis",
+        "optimal_conditions": {
+          "humidity_min": 70,
+          "temperature_min": 25,
+          "temperature_max": 30
+        },
+        "recommendation": "Aplicar fungicida cúprico. Aumentar ventilación."
+      },
+      {
+        "name": "Oídio",
+        "optimal_conditions": {
+          "temperature_min": 25,
+          "humidity_min": 60
+        },
+        "recommendation": "Aplicar azufre. Mejorar circulación de aire."
+      },
+      {
+        "name": "Estrés por Calor",
+        "optimal_conditions": {
+          "temperature_min": 35
+        },
+        "recommendation": "Riego profundo. Aplicar mulch. Sombreado temporal."
+      }
+    ]
+  },
+  "ui": {
+    "primary_color": "#667eea",
+    "secondary_color": "#764ba2",
+    "success_color": "#48bb78",
+    "warning_color": "#ed8936",
+    "danger_color": "#f56565",
+    "update_interval": 20000,
+    "theme": "light"
+  }
+}

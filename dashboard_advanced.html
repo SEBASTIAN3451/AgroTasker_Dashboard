@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroTasker - Dashboard Avanzado</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+            color: #2d3748;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-left h1 { font-size: 32px; margin-bottom: 5px; }
+        .header-left p { font-size: 14px; opacity: 0.9; }
+        .header-buttons button {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 10px 15px;
+            margin-left: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .header-buttons button:hover { background: rgba(255,255,255,0.3); }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px 8px 0 0;
+            padding: 0;
+        }
+        .tab-btn {
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-bottom: 3px solid transparent;
+            color: #718096;
+            font-weight: 500;
+        }
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        .status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+            z-index: 100;
+        }
+        .status.ok { border-left: 4px solid #48bb78; }
+        .status.warning { border-left: 4px solid #ed8936; }
+        .status.error { border-left: 4px solid #f56565; }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .section-title {
+            font-size: 20px;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        .card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .card.hidden { display: none; }
+        .card h3 { font-size: 12px; color: #718096; margin-bottom: 10px; text-transform: uppercase; }
+        .card .value { font-size: 28px; color: #00A3FF; font-weight: bold; margin-bottom: 10px; }
+        .card .status-bar { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+        .card .status-fill { height: 100%; background: #48bb78; }
+
+        .dashboard-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .overview-card {
+            position: relative;
+            overflow: hidden;
+            padding: 16px 18px;
+            border-radius: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.18);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        .overview-card::after {
+            content: '';
+            position: absolute;
+            inset: auto -24px -24px auto;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.18), rgba(102, 126, 234, 0));
+        }
+
+        .overview-kicker {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .overview-value {
+            font-size: 28px;
+            line-height: 1.05;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .overview-note {
+            position: relative;
+            z-index: 1;
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.45;
+        }
+
+        .overview-card.accent {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .overview-card.accent .overview-kicker,
+        .overview-card.accent .overview-value,
+        .overview-card.accent .overview-note {
+            color: white;
+        }
+
+        .overview-card.ok {
+            border-color: rgba(72, 187, 120, 0.22);
+        }
+
+        .quick-highlight {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .quick-pill {
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+        }
+
+        .quick-pill-label {
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            opacity: 0.72;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .quick-pill-value {
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 6px;
+        }
+
+        .quick-pill-sub {
+            font-size: 13px;
+            color: rgba(255,255,255,0.78);
+            line-height: 1.45;
+        }
+
+        .overview-state-ok { border-left: 4px solid #48bb78; }
+        .overview-state-warn { border-left: 4px solid #ed8936; }
+        .overview-state-critical { border-left: 4px solid #f56565; }
+        
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .alert.critical { background: #fee; border-color: #f56565; color: #742a2a; }
+        .alert.warning { background: #fffaf0; border-color: #ed8936; color: #7c2d12; }
+        .alert.info { background: #ebf8ff; border-color: #4299e1; color: #2c5282; }
+        .alert.success { background: #f0ffe4; border-color: #48bb78; color: #22543d; }
+        
+        .prediction-card {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+        }
+        .prediction-title { font-weight: bold; color: #2d3748; margin-bottom: 8px; }
+        .prediction-content { font-size: 14px; color: #4a5568; line-height: 1.6; }
+        
+        .task-item {
+            background: #f7fafc;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+        .task-item.urgent { border-left-color: #f56565; }
+        .task-item.completed { opacity: 0.6; text-decoration: line-through; }
+        .task-info { flex: 1; }
+        .task-date { font-size: 12px; color: #718096; }
+        .task-type { display: inline-block; background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 8px; }
+        .task-actions { display: flex; gap: 8px; }
+        .task-actions button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-complete { background: #48bb78; color: white; }
+        .btn-delete { background: #cbd5e0; color: #2d3748; }
+        
+        .irrigation-control {
+            background: linear-gradient(135deg, #48bb7815 0%, #38a16915 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #48bb78;
+            margin-bottom: 20px;
+        }
+        .irrigation-toggle {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .toggle-switch {
+            width: 60px;
+            height: 30px;
+            background: #cbd5e0;
+            border-radius: 15px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+        }
+        .toggle-switch.active { background: #48bb78; }
+        .toggle-switch span {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            transition: left 0.3s;
+        }
+        .toggle-switch.active span { left: 32px; }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-secondary { background: #cbd5e0; color: #2d3748; }
+        .btn-secondary:hover { background: #a0aec0; }
+        .btn-danger { background: #f56565; color: white; }
+        .btn-success { background: #48bb78; color: white; }
+        
+        .chart-container { position: relative; height: 300px; margin-top: 20px; }
+        
+        .loading { text-align: center; color: #718096; padding: 40px; }
+        
+        @media (max-width: 768px) {
+            .header { flex-direction: column; }
+            .tabs { flex-wrap: wrap; }
+            .grid { grid-template-columns: 1fr; }
+            .header-buttons { margin-top: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <h1>🌱 AgroTasker</h1>
+            <p>Sistema Inteligente de Cultivo de Mango</p>
+        </div>
+        <div class="header-buttons">
+            <button onclick="exportPDF()">📄 Descargar PDF</button>
+            <button onclick="exportCSV()">📊 Descargar CSV</button>
+            <button onclick="toggleTheme()">🌙 Tema</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('sensores')">📊 Sensores</button>
+            <button class="tab-btn" onclick="switchTab('predicciones')">🔮 Predicciones</button>
+            <button class="tab-btn" onclick="switchTab('tareas')">✅ Tareas</button>
+            <button class="tab-btn" onclick="switchTab('riego')">💧 Riego</button>
+            <button class="tab-btn" onclick="switchTab('alertas')">🚨 Alertas</button>
+        </div>
+
+        <div class="dashboard-overview">
+            <div class="overview-card accent">
+                <div class="overview-kicker">Fuente activa</div>
+                <div class="overview-value" id="overview-source">Dropbox</div>
+                <div class="overview-note" id="overview-source-note">Esperando la primera lectura...</div>
+            </div>
+            <div class="overview-card" id="overview-state-card">
+                <div class="overview-kicker">Estado general</div>
+                <div class="overview-value" id="overview-state">Evaluando</div>
+                <div class="overview-note" id="overview-state-note">Semaforización de suelo y clima.</div>
+            </div>
+            <div class="overview-card ok">
+                <div class="overview-kicker">Clima útil</div>
+                <div class="overview-value" id="overview-climate">--</div>
+                <div class="overview-note" id="overview-climate-note">Humedad y temperatura ambiental.</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-kicker">Suelo en foco</div>
+                <div class="overview-value" id="overview-soil">--</div>
+                <div class="overview-note" id="overview-soil-note">pH, humedad, temperatura, conductividad y NPK.</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-kicker">Actualización</div>
+                <div class="overview-value" id="overview-fresh">--</div>
+                <div class="overview-note" id="overview-fresh-note">Sin sincronización todavía.</div>
+            </div>
+        </div>
+
+        <div class="quick-highlight">
+            <div class="quick-pill">
+                <div class="quick-pill-label">Predicción</div>
+                <div class="quick-pill-value" id="quick-prediction">Esperando datos</div>
+                <div class="quick-pill-sub" id="quick-prediction-sub">Cosecha, riego y riesgos.</div>
+            </div>
+            <div class="quick-pill">
+                <div class="quick-pill-label">Semáforo</div>
+                <div class="quick-pill-value" id="quick-semaphore">--</div>
+                <div class="quick-pill-sub" id="quick-semaphore-sub">Estado de las variables críticas.</div>
+            </div>
+            <div class="quick-pill">
+                <div class="quick-pill-label">Registros</div>
+                <div class="quick-pill-value" id="quick-count">0</div>
+                <div class="quick-pill-sub">Lecturas reales cargadas en memoria.</div>
+            </div>
+        </div>
+
+        <!-- TAB: SENSORES -->
+        <div id="sensores" class="tab-content active">
+            <div class="section">
+                <div class="section-title">🚨 Alertas Activas</div>
+                <div id="alerts"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">📊 Sensores del Suelo</div>
+                <div class="grid" id="soil"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🌦️ Sensores Meteorológicos</div>
+                <div class="grid" id="weather"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">📈 Potencial Mátrico y UV</div>
+                <div class="grid" id="matric"></div>
+            </div>
+        </div>
+
+        <!-- TAB: PREDICCIONES -->
+        <div id="predicciones" class="tab-content">
+            <div class="section">
+                <div class="section-title">🔮 Predicciones Inteligentes</div>
+                <div id="predictions-container"></div>
+            </div>
+        </div>
+
+        <!-- TAB: TAREAS -->
+        <div id="tareas" class="tab-content">
+            <div class="section">
+                <div class="section-title">✅ Gestión de Tareas Agrícolas</div>
+                
+                <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #2d3748;">Nueva Tarea</h3>
+                    <div class="grid" style="grid-template-columns: 1fr 1fr 1fr 1fr auto;">
+                        <div class="form-group">
+                            <input type="text" id="task-name" placeholder="Nombre de tarea" style="margin: 0;">
+                        </div>
+                        <div class="form-group">
+                            <input type="date" id="task-date" style="margin: 0;">
+                        </div>
+                        <div class="form-group">
+                            <select id="task-type" style="margin: 0;">
+                                <option value="riego">🚿 Riego</option>
+                                <option value="fertilizacion">🌿 Fertilización</option>
+                                <option value="poda">✂️ Poda</option>
+                                <option value="fumigacion">🧪 Fumigación</option>
+                                <option value="cosecha">🥭 Cosecha</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select id="task-priority" style="margin: 0;">
+                                <option value="baja">Baja</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="alta">Alta</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="addTask()" style="margin-top: auto;">Agregar</button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #2d3748;">📅 Próximas Tareas (7 días)</h3>
+                    <div id="tasks-list"></div>
+                </div>
+
+                <div style="background: #f9fafb; padding: 15px; border-radius: 8px;">
+                    <h3 style="margin-bottom: 15px; color: #2d3748;">📈 Estadísticas</h3>
+                    <div class="grid">
+                        <div class="card">
+                            <h3>Total de Tareas</h3>
+                            <div class="value" id="stat-total">0</div>
+                        </div>
+                        <div class="card">
+                            <h3>Completadas</h3>
+                            <div class="value" id="stat-completed">0</div>
+                        </div>
+                        <div class="card">
+                            <h3>Pendientes</h3>
+                            <div class="value" id="stat-pending">0</div>
+                        </div>
+                        <div class="card">
+                            <h3>% Completadas</h3>
+                            <div class="value" id="stat-percentage">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: RIEGO -->
+        <div id="riego" class="tab-content">
+            <div class="section">
+                <div class="irrigation-control">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">💧 Control de Riego Automático</h2>
+                    
+                    <div class="irrigation-toggle">
+                        <div>
+                            <h3 style="margin-bottom: 5px;">Riego Manual</h3>
+                            <p style="font-size: 13px; color: #718096;">Activar/desactivar riego inmediato</p>
+                        </div>
+                        <div class="toggle-switch" id="irrigation-toggle" onclick="toggleIrrigation()">
+                            <span></span>
+                        </div>
+                        <div style="margin-left: auto; text-align: right;">
+                            <div id="irrigation-status" style="font-size: 18px; font-weight: bold; color: #48bb78;">● INACTIVO</div>
+                            <div id="irrigation-last" style="font-size: 12px; color: #718096;"></div>
+                        </div>
+                    </div>
+
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid rgba(0,0,0,0.1);">
+
+                    <h3 style="margin-bottom: 15px; color: #2d3748;">Programación de Riego Automático</h3>
+                    <div class="grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
+                        <div class="form-group">
+                            <label>Hora de Inicio</label>
+                            <input type="time" id="schedule-time" value="05:00">
+                        </div>
+                        <div class="form-group">
+                            <label>Duración (minutos)</label>
+                            <input type="number" id="schedule-duration" value="60" min="10" max="180">
+                        </div>
+                        <div class="form-group">
+                            <label>Frecuencia</label>
+                            <select id="schedule-frequency">
+                                <option value="daily">Diaria</option>
+                                <option value="alternate">Cada 2 días</option>
+                                <option value="weekly">Semanal</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="scheduleIrrigation()" style="margin-top: auto;">Programar</button>
+                    </div>
+                </div>
+
+                <div class="section" style="background: #f0f9ff; border: 1px solid #bae6fd;">
+                    <h3 style="margin-bottom: 15px; color: #0369a1;">💡 Recomendaciones de Riego</h3>
+                    <div id="irrigation-recommendations"></div>
+                </div>
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px; color: #2d3748;">📋 Historial de Riego (Últimos 7 días)</h3>
+                    <div id="irrigation-history"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ALERTAS -->
+        <div id="alertas" class="tab-content">
+            <div class="section">
+                <div class="section-title">⚙️ Configuración de Alertas</div>
+                
+                <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label>🌡️ Temperatura Mínima (°C)</label>
+                        <input type="number" id="alert-temp-min" value="24" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>🌡️ Temperatura Máxima (°C)</label>
+                        <input type="number" id="alert-temp-max" value="32" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>💧 Humedad Mínima (%)</label>
+                        <input type="number" id="alert-humidity-min" value="50" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label>💧 Humedad Máxima (%)</label>
+                        <input type="number" id="alert-humidity-max" value="75" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label>⚗️ pH Mínimo</label>
+                        <input type="number" id="alert-ph-min" value="5.5" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>⚗️ pH Máximo</label>
+                        <input type="number" id="alert-ph-max" value="7.0" step="0.1">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="saveAlertSettings()">💾 Guardar Configuración</button>
+                    <button class="btn btn-secondary" onclick="resetAlertSettings()">🔄 Restaurar Valores Predeterminados</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🚨 Alertas del Sistema</div>
+                <div id="system-alerts"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status ok" id="status">
+        <span id="status-text">Conectando...</span>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/tasks.js"></script>
+    <script src="js/irrigation.js"></script>
+    <script src="js/predictions.js?v=20260427"></script>
+    <script src="js/reports.js"></script>
+
+    <script>
+        // Variables globales
+        let currentSensorData = {};
+        let lastDataAt = null;
+        let alertSettings = {
+            tempMin: 24, tempMax: 32,
+            humidityMin: 50, humidityMax: 75,
+            phMin: 5.5, phMax: 7.0
+        };
+
+        // Sistema de alertas
+        function checkAlerts(sensorData) {
+            const alerts = [];
+            
+            const temp = parseFloat(sensorData['temp-aire']) || 0;
+            const humidity = parseFloat(sensorData['humedad-aire']) || 0;
+            const ph = parseFloat(sensorData['ph-suelo']) || 0;
+            const soilMoisture = parseFloat(sensorData['humedad-suelo']) || 0;
+
+            if (temp < alertSettings.tempMin) {
+                alerts.push({ type: 'warning', msg: `❄️ Temperatura baja: ${temp}°C (mínimo: ${alertSettings.tempMin}°C)` });
+            }
+            if (temp > alertSettings.tempMax) {
+                alerts.push({ type: 'critical', msg: `🔥 Temperatura alta: ${temp}°C (máximo: ${alertSettings.tempMax}°C)` });
+            }
+
+            if (humidity < alertSettings.humidityMin) {
+                alerts.push({ type: 'critical', msg: `🏜️ Humedad muy baja: ${humidity}% (mínimo: ${alertSettings.humidityMin}%)` });
+            }
+            if (humidity > alertSettings.humidityMax) {
+                alerts.push({ type: 'warning', msg: `💨 Humedad muy alta: ${humidity}% (máximo: ${alertSettings.humidityMax}%)` });
+            }
+
+            if (ph < alertSettings.phMin || ph > alertSettings.phMax) {
+                alerts.push({ type: 'warning', msg: `⚗️ pH fuera de rango: ${ph} (óptimo: ${alertSettings.phMin}-${alertSettings.phMax})` });
+            }
+
+            if (soilMoisture < 30) {
+                alerts.push({ type: 'critical', msg: '💧 Humedad del suelo crítica - Activar riego urgentemente' });
+            }
+
+            return alerts;
+        }
+
+        function displayAlerts(alerts) {
+            const container = document.getElementById('alerts');
+            container.innerHTML = '';
+
+            if (alerts.length === 0) {
+                container.innerHTML = '<div class="alert success">✓ Sin alertas activas - Sistema normal</div>';
+                return;
+            }
+
+            alerts.forEach(alert => {
+                const div = document.createElement('div');
+                div.className = 'alert ' + alert.type;
+                div.innerHTML = `<span>${alert.msg}</span><span onclick="this.parentElement.remove()" style="cursor:pointer;">×</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        // Cambiar tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Gestión de tareas
+        const agrotasker = typeof AgriculturalTasks !== 'undefined'
+            ? new AgriculturalTasks()
+            : {
+                addTask() {},
+                completeTask() {},
+                deleteTask() {},
+                getUpcoming() { return []; },
+                save() {},
+                getStatistics() {
+                    return {
+                        total: 0,
+                        completed: 0,
+                        pending: 0,
+                        byType: { riego: 0, fertilizacion: 0, poda: 0, fumigacion: 0, cosecha: 0 }
+                    };
+                }
+            };
+
+        function addTask() {
+            const name = document.getElementById('task-name').value;
+            const date = document.getElementById('task-date').value;
+            const type = document.getElementById('task-type').value;
+            const priority = document.getElementById('task-priority').value;
+
+            if (!name || !date) {
+                alert('Completa todos los campos');
+                return;
+            }
+
+            agrotasker.addTask(name, date, type, priority);
+            document.getElementById('task-name').value = '';
+            document.getElementById('task-date').value = '';
+            displayTasks();
+            updateTaskStats();
+        }
+
+        function displayTasks() {
+            const upcoming = agrotasker.getUpcoming(7);
+            const container = document.getElementById('tasks-list');
+            container.innerHTML = '';
+
+            if (upcoming.length === 0) {
+                container.innerHTML = '<p style="color: #718096; text-align: center; padding: 20px;">Sin tareas programadas</p>';
+                return;
+            }
+
+            upcoming.forEach(task => {
+                const date = new Date(task.date);
+                const isUrgent = (date - new Date()) < (2 * 24 * 60 * 60 * 1000);
+                const div = document.createElement('div');
+                div.className = 'task-item' + (isUrgent ? ' urgent' : '');
+                div.innerHTML = `
+                    <div class="task-info">
+                        <div style="font-weight: bold; margin-bottom: 5px;">${task.name}</div>
+                        <div>
+                            <span class="task-type">${task.type}</span>
+                            <span style="font-size: 12px; color: #718096;">${date.toLocaleDateString('es-MX')}</span>
+                        </div>
+                        <div class="task-date">Prioridad: ${task.priority}</div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="btn-complete" onclick="completeTask(${task.id})">✓ Completar</button>
+                        <button class="btn-delete" onclick="deleteTask(${task.id})">🗑 Eliminar</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function completeTask(id) {
+            agrotasker.completeTask(id);
+            displayTasks();
+            updateTaskStats();
+        }
+
+        function deleteTask(id) {
+            agrotasker.deleteTask(id);
+            displayTasks();
+            updateTaskStats();
+        }
+
+        function updateTaskStats() {
+            const stats = agrotasker.getStatistics();
+            document.getElementById('stat-total').textContent = stats.total;
+            document.getElementById('stat-completed').textContent = stats.completed;
+            document.getElementById('stat-pending').textContent = stats.pending;
+            const percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+            document.getElementById('stat-percentage').textContent = percentage + '%';
+        }
+
+        // Gestión de sensores
+        function addCard(container, id, name) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = 'card-' + id;
+            card.innerHTML = `
+                <h3>${name}</h3>
+                <div class="value" id="val-${id}">--</div>
+                <div class="status-bar"><div class="status-fill" id="bar-${id}" style="width: 50%;"></div></div>
+            `;
+            document.getElementById(container).appendChild(card);
+        }
+
+        function setValue(id, value, unit) {
+            const el = document.getElementById('val-' + id);
+            const card = document.getElementById('card-' + id);
+            if (!el) return;
+
+            const num = parseFloat(value);
+            if (isNaN(num) || value === null || value === undefined) {
+                if (card) card.classList.add('hidden');
+                return;
+            }
+
+            currentSensorData[id] = num;
+            if (card) card.classList.remove('hidden');
+            el.textContent = num.toFixed(2) + ' ' + unit;
+
+            // Actualizar barra de estado
+            let percent = 50;
+            if (id.includes('humedad')) percent = Math.min(100, num);
+            else if (id.includes('temp')) percent = Math.min(100, (num / 35) * 100);
+            const bar = document.getElementById('bar-' + id);
+            if (bar) bar.style.width = percent + '%';
+        }
+
+        function updateStatus(msg, type) {
+            const el = document.getElementById('status');
+            document.getElementById('status-text').textContent = msg;
+            el.className = 'status ' + type;
+        }
+
+        function formatElapsed(ms) {
+            if (!Number.isFinite(ms) || ms < 0) return '--';
+            const seconds = Math.floor(ms / 1000);
+            if (seconds < 60) return `${seconds}s`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m`;
+            const hours = Math.floor(minutes / 60);
+            return `${hours}h ${minutes % 60}m`;
+        }
+
+        function getDashboardState(alerts) {
+            if (!alerts || alerts.length === 0) {
+                return { label: 'Normal', detail: 'Todas las variables clave están en rango.', level: 'ok' };
+            }
+
+            const hasCritical = alerts.some(alert => alert.type === 'critical');
+            const hasWarning = alerts.some(alert => alert.type === 'warning');
+
+            if (hasCritical) {
+                return { label: 'Crítico', detail: 'Hay alertas rojas que requieren acción.', level: 'critical' };
+            }
+
+            if (hasWarning) {
+                return { label: 'Atención', detail: 'Hay variables en amarillo, conviene revisar.', level: 'warn' };
+            }
+
+            return { label: 'Normal', detail: 'No hay alertas activas.', level: 'ok' };
+        }
+
+        function getWaterSignalLabel() {
+            const humidity = Number(currentSensorData['humedad-suelo']);
+            const temp = Number(currentSensorData['temp-aire'] || currentSensorData['temp-suelo']);
+
+            if (!Number.isFinite(humidity) || !Number.isFinite(temp)) return 'sin cálculo';
+            if (humidity < 35 || temp > 32) return 'alta';
+            if (humidity < 50 || temp > 29) return 'media';
+            return 'baja';
+        }
+
+        function updateOverviewCards() {
+            const source = document.getElementById('overview-source');
+            const sourceNote = document.getElementById('overview-source-note');
+            const state = document.getElementById('overview-state');
+            const stateNote = document.getElementById('overview-state-note');
+            const climate = document.getElementById('overview-climate');
+            const climateNote = document.getElementById('overview-climate-note');
+            const soil = document.getElementById('overview-soil');
+            const soilNote = document.getElementById('overview-soil-note');
+            const fresh = document.getElementById('overview-fresh');
+            const freshNote = document.getElementById('overview-fresh-note');
+            const prediction = document.getElementById('quick-prediction');
+            const predictionSub = document.getElementById('quick-prediction-sub');
+            const semaphore = document.getElementById('quick-semaphore');
+            const semaphoreSub = document.getElementById('quick-semaphore-sub');
+            const count = document.getElementById('quick-count');
+
+            const hasData = Object.values(currentSensorData).some(value => typeof value === 'number' && !Number.isNaN(value));
+            const alerts = hasData ? checkAlerts(currentSensorData) : [];
+            const dashboardState = hasData
+                ? getDashboardState(alerts)
+                : { label: 'Esperando', detail: 'Sin lectura inicial todavía.', level: 'warn' };
+
+            if (source) source.textContent = 'Dropbox / API';
+            if (sourceNote) sourceNote.textContent = lastDataAt
+                ? `Última sincronización ${formatElapsed(Date.now() - lastDataAt)} atrás`
+                : 'Esperando la primera lectura...';
+
+            if (state) state.textContent = dashboardState.label;
+            if (stateNote) stateNote.textContent = dashboardState.detail;
+
+            const temp = currentSensorData['temp-aire'];
+            const humidity = currentSensorData['humedad-aire'];
+            const humidityText = typeof humidity === 'number' ? `${humidity.toFixed(1)}%` : '--';
+            const tempText = typeof temp === 'number' ? `${temp.toFixed(1)}°C` : '--';
+            if (climate) climate.textContent = `${tempText} / ${humidityText}`;
+            if (climateNote) climateNote.textContent = typeof temp === 'number' && typeof humidity === 'number'
+                ? `Riego sugerido: ${getWaterSignalLabel()}`
+                : 'Humedad y temperatura ambiental.';
+
+            const soilHumidity = currentSensorData['humedad-suelo'];
+            const soilPh = currentSensorData['ph-suelo'];
+            const soilCond = currentSensorData['conductividad'];
+            if (soil) soil.textContent = typeof soilHumidity === 'number' ? `${soilHumidity.toFixed(1)}%` : '--';
+            if (soilNote) soilNote.textContent = [
+                typeof soilPh === 'number' ? `pH ${soilPh.toFixed(2)}` : 'pH --',
+                typeof soilCond === 'number' ? `EC ${soilCond.toFixed(0)} µS/cm` : 'EC --'
+            ].join(' | ');
+
+            if (fresh) fresh.textContent = lastDataAt ? formatElapsed(Date.now() - lastDataAt) : '--';
+            if (freshNote) freshNote.textContent = lastDataAt
+                ? 'Tiempo desde la última actualización útil.'
+                : 'Sin datos sincronizados aún.';
+
+            if (prediction) prediction.textContent = dashboardState.label;
+            if (predictionSub) predictionSub.textContent = hasData && typeof temp === 'number' && typeof humidity === 'number'
+                ? `ET0 estimada y riego: ${getWaterSignalLabel()}`
+                : 'Carga datos para activar predicciones.';
+
+            if (semaphore) semaphore.textContent = dashboardState.label;
+            if (semaphoreSub) semaphoreSub.textContent = dashboardState.detail;
+            if (count) count.textContent = String(Object.keys(currentSensorData).length);
+        }
+
+        function initCards() {
+            // Orden solicitado: pH, humedad, temperatura, conductividad y NPK
+            addCard('soil', 'ph-suelo', '⚗️ pH Suelo');
+            addCard('soil', 'humedad-suelo', '💧 Humedad Suelo (%)');
+            addCard('soil', 'temp-suelo', '🌡️ Temp. Suelo (°C)');
+            addCard('soil', 'conductividad', '⚡ Conductividad (µS/cm)');
+            addCard('soil', 'nitrogeno', '🧪 Nitrógeno (mg/kg)');
+            addCard('soil', 'fosforo', '🧪 Fósforo (mg/kg)');
+            addCard('soil', 'potasio', '🧪 Potasio (mg/kg)');
+            addCard('weather', 'humedad-aire', '💧 Humedad Aire (%)');
+            updateOverviewCards();
+        }
+
+        async function fetchData() {
+            updateStatus('Cargando datos...', 'warning');
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+
+                const [soil, weather, matric] = await Promise.all([
+                    fetch('/api/thingspeak/soil', { signal: controller.signal }).then(r => r.json()).catch(() => ({feeds: []})),
+                    fetch('/api/thingspeak/weather', { signal: controller.signal }).then(r => r.json()).catch(() => ({feeds: []})),
+                    fetch('/api/thingspeak/matric_uv', { signal: controller.signal }).then(r => r.json()).catch(() => ({feeds: []}))
+                ]);
+
+                clearTimeout(timeout);
+
+                let hasData = false;
+
+                if (soil.feeds && soil.feeds.length > 0) {
+                    const latest = soil.feeds[soil.feeds.length - 1];
+                    if (latest.field1) { setValue('humedad-suelo', latest.field1, '%'); hasData = true; }
+                    if (latest.field2) { setValue('temp-suelo', latest.field2, '°C'); hasData = true; }
+                    if (latest.field3) { setValue('ph-suelo', latest.field3, ''); hasData = true; }
+                    if (latest.field4) { setValue('conductividad', latest.field4, 'µS/cm'); hasData = true; }
+                    if (latest.field5) { setValue('nitrogeno', latest.field5, 'mg/kg'); hasData = true; }
+                    if (latest.field6) { setValue('fosforo', latest.field6, 'mg/kg'); hasData = true; }
+                    if (latest.field7) { setValue('potasio', latest.field7, 'mg/kg'); hasData = true; }
+                }
+
+                if (weather.feeds && weather.feeds.length > 0) {
+                    const latest = weather.feeds[weather.feeds.length - 1];
+                    if (latest.field1) { setValue('viento-direccion', latest.field1, '°'); hasData = true; }
+                    if (latest.field2) { setValue('viento-velocidad', latest.field2, 'km/h'); hasData = true; }
+                    if (latest.field3) { setValue('precipitacion', latest.field3, 'mm'); hasData = true; }
+                    if (latest.field4) { setValue('temp-aire', latest.field4, '°C'); hasData = true; }
+                    if (latest.field5) { setValue('humedad-aire', latest.field5, '%'); hasData = true; }
+                    if (latest.field6) { setValue('presion', latest.field6, 'hPa'); hasData = true; }
+                }
+
+                if (matric.feeds && matric.feeds.length > 0) {
+                    const latest = matric.feeds[matric.feeds.length - 1];
+                    if (latest.field1) { setValue('resistencia-30cm', latest.field1, 'kΩ'); hasData = true; }
+                    if (latest.field2) { setValue('resistencia-60cm', latest.field2, 'kΩ'); hasData = true; }
+                    if (latest.field3) { setValue('uv-index', latest.field3, ''); hasData = true; }
+                }
+
+                // Generar predicciones
+                displayPredictions();
+
+                // Mostrar alertas
+                const alerts = checkAlerts(currentSensorData);
+                displayAlerts(alerts);
+
+                // Mostrar recomendaciones de riego
+                if (
+                    typeof predictionSystem !== 'undefined' &&
+                    typeof predictionSystem.predictWaterNeeds === 'function' &&
+                    currentSensorData['humedad-aire'] &&
+                    currentSensorData['temp-aire']
+                ) {
+                    const waterNeeds = predictionSystem.predictWaterNeeds(
+                        currentSensorData['humedad-aire'],
+                        currentSensorData['temp-aire']
+                    );
+                    displayWaterRecommendations(waterNeeds);
+                }
+
+                if (hasData) {
+                    lastDataAt = Date.now();
+                    updateStatus('✓ Datos en vivo - ' + new Date().toLocaleTimeString('es-MX'), 'ok');
+                } else {
+                    updateStatus('⚠ Sin datos de sensores', 'warning');
+                }
+
+                updateOverviewCards();
+            } catch (err) {
+                console.error('Error:', err);
+                updateStatus('✗ Error - Reintentando...', 'error');
+                updateOverviewCards();
+                setTimeout(fetchData, 5000);
+            }
+        }
+
+        function displayPredictions() {
+            const container = document.getElementById('predictions-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            try {
+                if (typeof predictionSystem === 'undefined') {
+                    container.innerHTML = '<div class="prediction-card"><div class="prediction-content">Módulo de predicciones no disponible.</div></div>';
+                    return;
+                }
+
+                // Predicción de cosecha (asumir floración hace 60 días)
+                const floweringDate = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+                if (typeof predictionSystem.predictHarvest !== 'function') {
+                    container.innerHTML = '<div class="prediction-card"><div class="prediction-content">Predicciones avanzadas no configuradas.</div></div>';
+                    return;
+                }
+
+                const harvest = predictionSystem.predictHarvest(floweringDate.toISOString());
+                
+                const harvDiv = document.createElement('div');
+                harvDiv.className = 'prediction-card';
+                harvDiv.innerHTML = `
+                    <div class="prediction-title">🥭 Estimación de Cosecha</div>
+                    <div class="prediction-content">
+                        <strong>Fecha estimada:</strong> ${harvest.estimatedHarvestDate}<br>
+                        <strong>Días restantes:</strong> ${harvest.daysRemaining} días<br>
+                        <strong>Mes de cosecha:</strong> ${harvest.harvestMonth}<br>
+                        <strong>Progreso:</strong> ${harvest.progress}%
+                    </div>
+                `;
+                container.appendChild(harvDiv);
+
+                // Predicción de riego
+                if (
+                    typeof predictionSystem.predictWaterNeeds === 'function' &&
+                    currentSensorData['humedad-aire'] &&
+                    currentSensorData['temp-aire']
+                ) {
+                    const waterNeeds = predictionSystem.predictWaterNeeds(
+                        currentSensorData['humedad-aire'],
+                        currentSensorData['temp-aire']
+                    );
+                    const waterDiv = document.createElement('div');
+                    waterDiv.className = 'prediction-card';
+                    waterDiv.innerHTML = `
+                        <div class="prediction-title">💧 Necesidades de Riego</div>
+                        <div class="prediction-content">
+                            <strong>Prioridad:</strong> ${waterNeeds.priority}<br>
+                            <strong>Litros recomendados:</strong> ${waterNeeds.recommendedLiters}L<br>
+                            <strong>Frecuencia:</strong> ${waterNeeds.frequency}<br>
+                            <strong>Mejor hora:</strong> ${waterNeeds.bestTime}<br>
+                            <strong>Nota:</strong> ${waterNeeds.notes}
+                        </div>
+                    `;
+                    container.appendChild(waterDiv);
+                }
+
+                // Predicción de enfermedades
+                if (
+                    typeof predictionSystem.predictDiseases === 'function' &&
+                    currentSensorData['humedad-aire'] &&
+                    currentSensorData['temp-aire']
+                ) {
+                    const diseases = predictionSystem.predictDiseases(
+                        currentSensorData['humedad-aire'],
+                        currentSensorData['temp-aire']
+                    );
+                    if (Array.isArray(diseases) && diseases.length > 0) {
+                        diseases.forEach(disease => {
+                            const diseDiv = document.createElement('div');
+                            diseDiv.className = 'prediction-card';
+                            diseDiv.innerHTML = `
+                                <div class="prediction-title">${disease.name}</div>
+                                <div class="prediction-content">
+                                    <strong>Nivel de riesgo:</strong> ${disease.riskLevel}<br>
+                                    <strong>Confianza:</strong> ${disease.confidence}%<br>
+                                    <strong>Recomendación:</strong> ${disease.recommendation}
+                                </div>
+                            `;
+                            container.appendChild(diseDiv);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error en displayPredictions:', error);
+                container.innerHTML = `<div class="prediction-card"><div class="prediction-content">⚠️ Error al cargar predicciones: ${error.message}</div></div>`;
+            }
+        }
+
+        function displayWaterRecommendations(waterNeeds) {
+            const container = document.getElementById('irrigation-recommendations');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #3182ce;">
+                    <strong style="display: block; margin-bottom: 10px;">Basado en datos actuales:</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><strong>Prioridad:</strong> ${waterNeeds.priority}</div>
+                        <div><strong>Volumen:</strong> ${waterNeeds.recommendedLiters}L</div>
+                        <div><strong>Frecuencia:</strong> ${waterNeeds.frequency}</div>
+                        <div><strong>Mejor hora:</strong> ${waterNeeds.bestTime}</div>
+                        <div colspan="2" style="grid-column: 1/-1;"><strong>Notas:</strong> ${waterNeeds.notes}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Control de riego
+        const irrigation = new IrrigationControl();
+
+        function toggleIrrigation() {
+            const active = irrigation.toggleIrrigation();
+            const toggle = document.getElementById('irrigation-toggle');
+            const status = document.getElementById('irrigation-status');
+            
+            if (active) {
+                toggle.classList.add('active');
+                status.textContent = '● ACTIVO';
+                status.style.color = '#48bb78';
+            } else {
+                toggle.classList.remove('active');
+                status.textContent = '● INACTIVO';
+                status.style.color = '#a0aec0';
+            }
+            
+            updateIrrigationHistory();
+        }
+
+        function scheduleIrrigation() {
+            const time = document.getElementById('schedule-time').value;
+            const duration = document.getElementById('schedule-duration').value;
+            const frequency = document.getElementById('schedule-frequency').value;
+            
+            irrigation.scheduleIrrigation(time, parseInt(duration), frequency);
+            alert('Programación guardada: ' + time + ' durante ' + duration + ' minutos');
+        }
+
+        function updateIrrigationHistory() {
+            const container = document.getElementById('irrigation-history');
+            if (!container) return;
+
+            const history = irrigation.history.slice(-10).reverse();
+            container.innerHTML = '';
+
+            if (history.length === 0) {
+                container.innerHTML = '<p style="color: #718096; text-align: center; padding: 20px;">Sin eventos registrados</p>';
+                return;
+            }
+
+            history.forEach(event => {
+                const date = new Date(event.timestamp);
+                const div = document.createElement('div');
+                div.className = 'task-item';
+                div.innerHTML = `
+                    <div class="task-info">
+                        <div style="font-weight: bold;">${event.description}</div>
+                        <div class="task-date">${date.toLocaleString('es-MX')}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: ${event.status ? '#d4edda' : '#f8d7da'}; color: #000; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                            ${event.status ? 'Activado' : 'Desactivado'}
+                        </span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Configuración de alertas
+        function saveAlertSettings() {
+            alertSettings.tempMin = parseFloat(document.getElementById('alert-temp-min').value);
+            alertSettings.tempMax = parseFloat(document.getElementById('alert-temp-max').value);
+            alertSettings.humidityMin = parseFloat(document.getElementById('alert-humidity-min').value);
+            alertSettings.humidityMax = parseFloat(document.getElementById('alert-humidity-max').value);
+            alertSettings.phMin = parseFloat(document.getElementById('alert-ph-min').value);
+            alertSettings.phMax = parseFloat(document.getElementById('alert-ph-max').value);
+
+            localStorage.setItem('agrotasker_alert_settings', JSON.stringify(alertSettings));
+            alert('✓ Configuración de alertas guardada');
+        }
+
+        function resetAlertSettings() {
+            alertSettings = {
+                tempMin: 24, tempMax: 32,
+                humidityMin: 50, humidityMax: 75,
+                phMin: 5.5, phMax: 7.0
+            };
+            document.getElementById('alert-temp-min').value = 24;
+            document.getElementById('alert-temp-max').value = 32;
+            document.getElementById('alert-humidity-min').value = 50;
+            document.getElementById('alert-humidity-max').value = 75;
+            document.getElementById('alert-ph-min').value = 5.5;
+            document.getElementById('alert-ph-max').value = 7.0;
+            localStorage.removeItem('agrotasker_alert_settings');
+            alert('✓ Valores predeterminados restaurados');
+        }
+
+        function loadAlertSettings() {
+            const saved = localStorage.getItem('agrotasker_alert_settings');
+            if (saved) {
+                alertSettings = JSON.parse(saved);
+                document.getElementById('alert-temp-min').value = alertSettings.tempMin;
+                document.getElementById('alert-temp-max').value = alertSettings.tempMax;
+                document.getElementById('alert-humidity-min').value = alertSettings.humidityMin;
+                document.getElementById('alert-humidity-max').value = alertSettings.humidityMax;
+                document.getElementById('alert-ph-min').value = alertSettings.phMin;
+                document.getElementById('alert-ph-max').value = alertSettings.phMax;
+            }
+        }
+
+        // Exportar reportes
+        function exportPDF() {
+            const element = document.querySelector('.container');
+            html2pdf().set({
+                margin: 10,
+                filename: 'AgroTasker_Reporte_' + new Date().toISOString().split('T')[0] + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            }).save(element);
+        }
+
+        function exportCSV() {
+            if (window.ReportGenerator) {
+                ReportGenerator.exportToCSV();
+            } else {
+                alert('Módulo de reportes no disponible');
+            }
+        }
+
+        function toggleTheme() {
+            document.body.style.background = document.body.style.background === 'rgb(245, 247, 250)' ? '#1a202c' : '#f5f7fa';
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            initCards();
+            loadAlertSettings();
+            fetchData();
+            setInterval(fetchData, 60000); // 60s polling - 1 minuto en tiempo real
+            displayTasks();
+            updateTaskStats();
+            updateIrrigationHistory();
+        });
+    </script>
+</body>
+</html>

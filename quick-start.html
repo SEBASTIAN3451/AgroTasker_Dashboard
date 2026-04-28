@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroTasker - Guía de Inicio Rápido</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #2d3748;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 36px;
+        }
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .section:last-child {
+            border-bottom: none;
+        }
+        h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .step-content {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-left: 42px;
+        }
+        code {
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #c53030;
+            font-size: 14px;
+        }
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            grid-column: 1;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+            grid-column: 2;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .feature-card {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .feature-card strong {
+            color: #2d3748;
+        }
+        .feature-card p {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f0ffe4;
+            border: 1px solid #c6f6d5;
+            border-radius: 8px;
+            color: #22543d;
+            margin-top: 20px;
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background: #48bb78;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .tab-preview {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+        }
+        .tab-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .tab-item {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e0;
+            font-size: 14px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+        .responsive {
+            max-width: 100%;
+        }
+        @media (max-width: 768px) {
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+            .btn-primary, .btn-secondary {
+                grid-column: 1;
+            }
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 AgroTasker - Guía de Inicio Rápido</h1>
+        <p class="subtitle">Sistema Inteligente de Cultivo de Mango v2.0</p>
+
+        <div class="status">
+            <span class="status-dot"></span>
+            <strong>✓ Sistema en línea</strong> - Servidor activo y funcionando
+        </div>
+
+        <!-- SECCIÓN 1: INICIO RÁPIDO -->
+        <div class="section">
+            <h2>⚡ Inicio en 3 Pasos</h2>
+            
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    Elige tu Dashboard
+                </div>
+                <div class="step-content">
+                    <strong>Simple:</strong> Rápido y ligero, ideal si tienes conexión lenta<br>
+                    <strong>Avanzado:</strong> Completo con predicciones, tareas y control de riego<br>
+                    <strong>Original:</strong> Compatible con navegadores antiguos
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    Monitorea en Tiempo Real
+                </div>
+                <div class="step-content">
+                    Ver datos de 15 sensores (suelo, clima, radiación UV)<br>
+                    Actualización automática cada 20 segundos<br>
+                    Alertas visuales cuando algo anormal sucede
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    Toma Decisiones Inteligentes
+                </div>
+                <div class="step-content">
+                    Lee predicciones automáticas<br>
+                    Activa riego cuando sea necesario<br>
+                    Registra tareas y eventos
+                </div>
+            </div>
+
+            <div class="button-group">
+                <a href="/dashboard_advanced.html" class="btn btn-primary">
+                    🚀 Abrir Dashboard Avanzado
+                </a>
+                <a href="/index-menu.html" class="btn btn-secondary">
+                    📋 Ver Todas las Opciones
+                </a>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: CARACTERÍSTICAS -->
+        <div class="section">
+            <h2>✨ Características Principales</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <strong>📊 Monitoreo</strong>
+                    <p>15 sensores en tiempo real actualizados cada 20s</p>
+                </div>
+                <div class="feature-card">
+                    <strong>🔮 Predicciones</strong>
+                    <p>Cosecha, riego, enfermedades y nutrientes</p>
+                </div>
+                <div class="feature-card">
+                    <strong>💧 Control Riego</strong>
+                    <p>Manual, automático y programado</p>
+                </div>
+                <div class="feature-card">
+                    <strong>✅ Tareas</strong>
+                    <p>Gestión de actividades agrícolas</p>
+                </div>
+                <div class="feature-card">
+                    <strong>🚨 Alertas</strong>
+                    <p>Configurables según tus necesidades</p>
+                </div>
+                <div class="feature-card">
+                    <strong>📄 Reportes</strong>
+                    <p>Descarga PDF y exporta a CSV</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: DASHBOARDS DISPONIBLES -->
+        <div class="section">
+            <h2>📱 Elige tu Versión</h2>
+            
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">⚡</span>
+                    Dashboard Simple
+                </div>
+                <div class="step-content">
+                    <strong>Ideal para:</strong> Conexiones lentas, dispositivos móviles<br>
+                    <strong>Tamaño:</strong> 1 KB<br>
+                    <strong>Carga:</strong> <1 segundo<br>
+                    <strong>Características:</strong> 15 sensores en tiempo real
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">🚀</span>
+                    Dashboard Avanzado (Recomendado)
+                </div>
+                <div class="step-content">
+                    <strong>Ideal para:</strong> Control completo desde la oficina<br>
+                    <strong>Características:</strong>
+                    <div class="tab-preview">
+                        <div class="tab-list">
+                            <div class="tab-item">📊 Sensores</div>
+                            <div class="tab-item">🔮 Predicciones</div>
+                            <div class="tab-item">✅ Tareas</div>
+                            <div class="tab-item">💧 Riego</div>
+                            <div class="tab-item">🚨 Alertas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">⭐</span>
+                    Dashboard Original
+                </div>
+                <div class="step-content">
+                    <strong>Ideal para:</strong> Compatibilidad máxima<br>
+                    <strong>Incluye:</strong> Gráficos, alertas avanzadas, eventos
+                </div>
+            </div>
+
+            <div class="button-group" style="margin-top: 25px;">
+                <a href="/dashboard_simple.html" class="btn btn-secondary">
+                    ⚡ Simple
+                </a>
+                <a href="/dashboard_advanced.html" class="btn btn-primary">
+                    🚀 Avanzado
+                </a>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 4: PREDICCIONES -->
+        <div class="section">
+            <h2>🔮 Predicciones Inteligentes</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <strong>🥭 Cosecha</strong>
+                    <p>Estimación automática (210 días desde floración)</p>
+                </div>
+                <div class="feature-card">
+                    <strong>💧 Riego</strong>
+                    <p>Cálculo dinámico según humedad y temperatura</p>
+                </div>
+                <div class="feature-card">
+                    <strong>🌿 Nutrientes</strong>
+                    <p>Análisis de N, P, K y recomendaciones</p>
+                </div>
+                <div class="feature-card">
+                    <strong>🦠 Enfermedades</strong>
+                    <p>Detección de antracnosis, oídio, estrés</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 5: SENSORES -->
+        <div class="section">
+            <h2>📊 Sensores Monitoreados</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 10px;">🌍 Suelo (7 sensores)</h3>
+                    <ul style="list-style: none; color: #4a5568;">
+                        <li>✓ Humedad (%)</li>
+                        <li>✓ Temperatura (°C)</li>
+                        <li>✓ pH</li>
+                        <li>✓ Conductividad (µS/cm)</li>
+                        <li>✓ Nitrógeno (mg/kg)</li>
+                        <li>✓ Fósforo (mg/kg)</li>
+                        <li>✓ Potasio (mg/kg)</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 10px;">🌦️ Clima (6 sensores)</h3>
+                    <ul style="list-style: none; color: #4a5568;">
+                        <li>✓ Temperatura aire (°C)</li>
+                        <li>✓ Humedad aire (%)</li>
+                        <li>✓ Viento (velocidad/dirección)</li>
+                        <li>✓ Precipitación (mm)</li>
+                        <li>✓ Presión (hPa)</li>
+                        <li>✓ Índice UV</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #f0ffe4; border-radius: 8px; border-left: 4px solid #48bb78; color: #22543d;">
+                <strong>✓ Solo muestra sensores activos</strong> - Los sensores inactivos se ocultan automáticamente
+            </div>
+        </div>
+
+        <!-- SECCIÓN 6: ACCESO REMOTO -->
+        <div class="section">
+            <h2>🌍 Acceso Remoto (ngrok)</h2>
+            
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">📍</span>
+                    ¿Qué es ngrok?
+                </div>
+                <div class="step-content">
+                    Permite acceder a tu dashboard desde cualquier lugar del mundo<br>
+                    Tu teléfono, tablet, o cualquier navegador<br>
+                    URL pública y segura (HTTPS automático)
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">🚀</span>
+                    Cómo Activarlo
+                </div>
+                <div class="step-content">
+                    <strong>En una terminal:</strong><br>
+                    <code>ngrok http 8080 --region us</code><br><br>
+                    <strong>Verás algo como:</strong><br>
+                    <code>https://stripeless-throughgoingly-landyn.ngrok-free.dev</code><br><br>
+                    Abre esa URL en tu móvil y ¡listo!
+                </div>
+            </div>
+
+            <a href="/NGROK_DEPLOYMENT.md" style="
+                display: inline-block;
+                color: #667eea;
+                text-decoration: none;
+                margin-top: 15px;
+                font-weight: 600;
+            ">
+                📖 Lee la guía completa de ngrok →
+            </a>
+        </div>
+
+        <!-- SECCIÓN 7: SOPORTE -->
+        <div class="section">
+            <h2>❓ ¿Problemas?</h2>
+            
+            <div class="step">
+                <strong style="display: block; margin-bottom: 10px;">Dashboard en blanco o "Conectando..."</strong>
+                <p style="color: #4a5568;">
+                    1. Abre tu navegador en: <code>http://localhost:8080/</code><br>
+                    2. Presiona F12 → Console (revisa errores)<br>
+                    3. Espera 20 segundos para que carguen datos<br>
+                    4. Si persiste, recarga la página (Ctrl+Shift+Del)
+                </p>
+            </div>
+
+            <div class="step">
+                <strong style="display: block; margin-bottom: 10px;">Faltan sensores o datos</strong>
+                <p style="color: #4a5568;">
+                    Algunos sensores pueden estar inactivos en ThingSpeak.<br>
+                    Solo se muestran sensores con datos válidos.<br>
+                    Aguarda 20 segundos para el próximo refresco.
+                </p>
+            </div>
+
+            <div class="step">
+                <strong style="display: block; margin-bottom: 10px;">¿Cómo reiniciar el servidor?</strong>
+                <p style="color: #4a5568;">
+                    En PowerShell, en la carpeta del proyecto:<br>
+                    <code>.\start.ps1</code>
+                </p>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 8: DOCUMENTACIÓN -->
+        <div class="section" style="border-bottom: none;">
+            <h2>📚 Documentación Completa</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <a href="/DASHBOARD_GUIDE.md" style="
+                    display: block;
+                    padding: 15px;
+                    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+                    border: 1px solid #cbd5e0;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    color: #2d3748;
+                    font-weight: 600;
+                ">
+                    📖 Guía Completa<br>
+                    <span style="font-size: 13px; color: #718096; font-weight: 400;">
+                        Características, configuración, troubleshooting
+                    </span>
+                </a>
+
+                <a href="/NGROK_DEPLOYMENT.md" style="
+                    display: block;
+                    padding: 15px;
+                    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+                    border: 1px solid #cbd5e0;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    color: #2d3748;
+                    font-weight: 600;
+                ">
+                    🌍 Acceso Remoto<br>
+                    <span style="font-size: 13px; color: #718096; font-weight: 400;">
+                        Instrucciones paso a paso para ngrok
+                    </span>
+                </a>
+
+                <a href="/RESUMEN_IMPLEMENTACION.txt" style="
+                    display: block;
+                    padding: 15px;
+                    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+                    border: 1px solid #cbd5e0;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    color: #2d3748;
+                    font-weight: 600;
+                ">
+                    ✅ Resumen<br>
+                    <span style="font-size: 13px; color: #718096; font-weight: 400;">
+                        Lo que se ha implementado
+                    </span>
+                </a>
+
+                <a href="/config.json" style="
+                    display: block;
+                    padding: 15px;
+                    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+                    border: 1px solid #cbd5e0;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    color: #2d3748;
+                    font-weight: 600;
+                ">
+                    ⚙️ Configuración<br>
+                    <span style="font-size: 13px; color: #718096; font-weight: 400;">
+                        Rangos, APIs, sensores
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding-top: 40px; border-top: 2px solid #e2e8f0;">
+            <p style="color: #718096; font-size: 14px; margin-bottom: 20px;">
+                ¿Listo para comenzar?
+            </p>
+            <a href="/dashboard_advanced.html" class="btn btn-primary" style="justify-self: center; width: auto; margin: 0 auto;">
+                🚀 Abrir Dashboard Avanzado
+            </a>
+            <p style="color: #cbd5e0; font-size: 12px; margin-top: 20px;">
+                AgroTasker v2.0 • Sistema Inteligente de Cultivo de Mango
+            </p>
+        </div>
+    </div>
+</body>
+</html>

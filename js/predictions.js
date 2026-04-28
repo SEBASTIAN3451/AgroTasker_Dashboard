@@ -15,7 +15,19 @@ class PredictionSystem {
     }
 
     initChart() {
-        const ctx = document.getElementById('prediction-chart').getContext('2d');
+        const canvas = document.getElementById('prediction-chart');
+        if (!canvas) {
+            // El dashboard puede ocultar/separar este widget.
+            this.chart = null;
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            this.chart = null;
+            return;
+        }
+
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -133,6 +145,8 @@ class PredictionSystem {
     }
 
     updateChart() {
+        if (!this.chart) return;
+
         // Actualizar datos reales
         this.chart.data.labels = this.generateTimeLabels();
         this.chart.data.datasets[0].data = this.historicalData.temperatura.map(d => d.value);
@@ -171,6 +185,143 @@ class PredictionSystem {
         }).format(date);
     }
 
+    predictHarvest(floweringDate) {
+        const start = new Date(floweringDate);
+        if (Number.isNaN(start.getTime())) {
+            return {
+                estimatedHarvestDate: 'Fecha no válida',
+                daysRemaining: null,
+                harvestMonth: 'Desconocido',
+                progress: 0
+            };
+        }
+
+        const harvestDate = new Date(start.getTime() + 210 * 24 * 60 * 60 * 1000);
+        const totalDays = 210;
+        const elapsedDays = Math.max(0, Math.floor((Date.now() - start.getTime()) / (24 * 60 * 60 * 1000)));
+        const daysRemaining = Math.max(0, Math.ceil((harvestDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+        const progress = Math.max(0, Math.min(100, Math.round((elapsedDays / totalDays) * 100)));
+
+        return {
+            estimatedHarvestDate: harvestDate.toLocaleDateString('es-MX'),
+            daysRemaining,
+            harvestMonth: harvestDate.toLocaleDateString('es-MX', { month: 'long' }),
+            progress
+        };
+    }
+
+    predictWaterNeeds(humidity, temperature) {
+        const hum = Number(humidity);
+        const temp = Number(temperature);
+        const safeHumidity = Number.isFinite(hum) ? hum : 0;
+        const safeTemp = Number.isFinite(temp) ? temp : 0;
+
+        let priority = 'Baja';
+        let recommendedLiters = 15;
+        let frequency = 'Cada 3-4 días';
+        let bestTime = '06:00-08:00';
+        let notes = 'Monitoreo estable.';
+
+        if (safeHumidity < 35 || safeTemp > 32) {
+            priority = 'Alta';
+            recommendedLiters = 45;
+            frequency = 'Diaria';
+            bestTime = '05:30-07:30';
+            notes = 'Riego prioritario por déficit hídrico y/o temperatura alta.';
+        } else if (safeHumidity < 50 || safeTemp > 29) {
+            priority = 'Media';
+            recommendedLiters = 28;
+            frequency = 'Cada 2 días';
+            bestTime = '06:00-08:00';
+            notes = 'Ajuste preventivo para sostener humedad útil.';
+        } else if (safeHumidity > 72) {
+            priority = 'Baja';
+            recommendedLiters = 8;
+            frequency = 'Suspender temporalmente';
+            bestTime = 'No aplica';
+            notes = 'El suelo conserva suficiente humedad; evitar sobre-riego.';
+        }
+
+        return {
+            priority,
+            recommendedLiters,
+            frequency,
+            bestTime,
+            notes
+        };
+    }
+
+    predictDiseases(humidity, temperature) {
+        const hum = Number(humidity);
+        const temp = Number(temperature);
+        const safeHumidity = Number.isFinite(hum) ? hum : 0;
+        const safeTemp = Number.isFinite(temp) ? temp : 0;
+
+        const diseases = [];
+
+        if (safeHumidity >= 72 && safeTemp >= 25 && safeTemp <= 30) {
+            diseases.push({
+                name: 'Antracnosis',
+                riskLevel: 'Alto',
+                confidence: 84,
+                recommendation: 'Reducir humedad foliar, mejorar ventilación y vigilar síntomas iniciales.'
+            });
+        }
+
+        if (safeHumidity >= 60 && safeTemp >= 24 && safeTemp <= 31) {
+            diseases.push({
+                name: 'Oídio',
+                riskLevel: 'Medio',
+                confidence: 68,
+                recommendation: 'Mantener circulación de aire y aplicar control preventivo si aumenta la humedad.'
+            });
+        }
+
+        if (safeTemp >= 33) {
+            diseases.push({
+                name: 'Estrés por Calor',
+                riskLevel: 'Alto',
+                confidence: 90,
+                recommendation: 'Activar riego de apoyo, sombreo temporal y evitar labores en horas de mayor radiación.'
+            });
+        }
+
+        if (diseases.length === 0) {
+            diseases.push({
+                name: 'Riesgo Fitosanitario Bajo',
+                riskLevel: 'Bajo',
+                confidence: 76,
+                recommendation: 'Condiciones estables; continúe con monitoreo rutinario.'
+            });
+        }
+
+        return diseases;
+    }
+
+    predictNutrientNeeds(nitrogen, phosphorus, potassium) {
+        const n = Number(nitrogen);
+        const p = Number(phosphorus);
+        const k = Number(potassium);
+
+        const needs = [];
+
+        if (Number.isFinite(n) && n < 220) {
+            needs.push({ nutrient: 'N', status: 'Bajo', recommendation: 'Aplicar fertilización nitrogenada de refuerzo.' });
+        }
+        if (Number.isFinite(p) && p < 45) {
+            needs.push({ nutrient: 'P', status: 'Bajo', recommendation: 'Corregir fósforo para apoyar enraizamiento y floración.' });
+        }
+        if (Number.isFinite(k) && k < 190) {
+            needs.push({ nutrient: 'K', status: 'Bajo', recommendation: 'Subir potasio para mejorar llenado de fruto y tolerancia al estrés.' });
+        }
+
+        if (needs.length === 0) {
+            needs.push({ nutrient: 'NPK', status: 'Adecuado', recommendation: 'Los nutrientes principales están en rango operativo.' });
+        }
+
+        return needs;
+    }
+
     generateRecommendations() {
         const latestTemp = this.historicalData.temperatura[this.historicalData.temperatura.length - 1]?.value;
         const latestHumidity = this.historicalData.humedad[this.historicalData.humedad.length - 1]?.value;
@@ -178,14 +329,14 @@ class PredictionSystem {
         const predictedHumidity = this.predictions.humedad[0];
 
         // Generar recomendaciones basadas en tendencias
-        if (predictedHumidity < 30 && latestHumidity < 35) {
+        if (typeof notificationSystem !== 'undefined' && predictedHumidity < 30 && latestHumidity < 35) {
             notificationSystem.notify('Alerta de Riego', {
                 body: 'Se prevé baja humedad. Se recomienda programar riego en las próximas horas.',
                 type: 'warning'
             });
         }
 
-        if (predictedTemp > 32 && latestTemp > 30) {
+        if (typeof notificationSystem !== 'undefined' && predictedTemp > 32 && latestTemp > 30) {
             notificationSystem.notify('Alerta de Temperatura', {
                 body: 'Se espera temperatura alta. Considere medidas de protección para el cultivo.',
                 type: 'warning'
@@ -233,4 +384,5 @@ class PredictionSystem {
 }
 
 // Inicializar el sistema de predicciones
-const predictionSystem = new PredictionSystem();
+window.predictionSystem = new PredictionSystem();
+var predictionSystem = window.predictionSystem;

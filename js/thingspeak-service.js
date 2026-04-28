@@ -1,20 +1,20 @@
 class ThingSpeakService {
     constructor() {
-        this.channelId = '2791075';
-        this.baseUrl = 'https://api.thingspeak.com/channels';
+        this.channelId = '2791076';
+        this.baseUrl = '/api/thingspeak';
         this.updateInterval = 30000; // 30 segundos
     }
 
     async fetchData() {
         try {
-            const response = await fetch(`${this.baseUrl}/${this.channelId}/feeds.json?results=1000`);
+            const response = await fetch(`${this.baseUrl}/soil?results=1000`);
             if (!response.ok) {
-                throw new Error('Error al obtener datos de ThingSpeak');
+                throw new Error('Error al obtener datos desde Dropbox');
             }
             const data = await response.json();
             return this.processData(data);
         } catch (error) {
-            console.error('Error fetching ThingSpeak data:', error);
+            console.error('Error fetching Dropbox-derived data:', error);
             throw error;
         }
     }
@@ -26,6 +26,9 @@ class ThingSpeakService {
             soilTemperature: this.extractFieldData(feeds, 'field2'),
             electricalConductivity: this.extractFieldData(feeds, 'field3'),
             soilPH: this.extractFieldData(feeds, 'field4'),
+            nitrogen: this.extractFieldData(feeds, 'field5'),
+            phosphorus: this.extractFieldData(feeds, 'field6'),
+            potassium: this.extractFieldData(feeds, 'field7'),
             lastUpdate: feeds[feeds.length - 1]?.created_at
         };
     }

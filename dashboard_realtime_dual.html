@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroTasker - Monitoreo en Vivo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(160deg, #f2f7ff 0%, #eef7f3 45%, #fdf8ef 100%);
+            color: #17313f;
+            padding: 20px;
+        }
+        .wrap { max-width: 1300px; margin: 0 auto; }
+        .hero {
+            background: linear-gradient(135deg, #0f766e 0%, #0ea5e9 55%, #2563eb 100%);
+            color: #fff;
+            padding: 26px;
+            border-radius: 16px;
+            box-shadow: 0 16px 36px rgba(14, 116, 144, 0.24);
+            margin-bottom: 18px;
+        }
+        .hero h1 { font-size: 32px; margin-bottom: 6px; }
+        .hero p { opacity: 0.92; line-height: 1.45; }
+
+        .banner {
+            background: linear-gradient(135deg, #0f766e 0%, #2563eb 100%);
+            color: #fff;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .config {
+            background: #fff;
+            border: 1px solid #c9e1ea;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+        .config label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #336274;
+            font-weight: 700;
+        }
+        .config input {
+            width: 100%;
+            border: 1px solid #b7d4df;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #0f766e;
+            color: #fff;
+        }
+        .btn:hover { filter: brightness(1.05); }
+
+        .statusbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .pill {
+            background: #fff;
+            border: 1px solid #d5e6ee;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 13px;
+            color: #255066;
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .panel {
+            background: #fff;
+            border: 1px solid #d8e9ef;
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 8px 22px rgba(31, 74, 97, 0.08);
+        }
+        .panel-main {
+            border-top: 6px solid #0f766e;
+            background: linear-gradient(180deg, #f6fdfc 0%, #ffffff 55%);
+        }
+        .panel-user {
+            border-top: 6px solid #1d4ed8;
+            background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 55%);
+        }
+        .panel h2 { font-size: 20px; margin-bottom: 6px; }
+        .panel .subtitle { font-size: 13px; color: #4f7788; margin-bottom: 12px; }
+        .source-tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-radius: 999px;
+            padding: 5px 10px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .source-tag.main { background: #0f766e; }
+        .source-tag.user { background: #1d4ed8; }
+
+        .legend {
+            background: #fff;
+            border: 1px solid #d3e5ee;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .legend-item {
+            border: 1px solid #e1edf3;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 13px;
+            color: #2b5b70;
+        }
+        .legend-item strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+        .legend-item.main strong { color: #0f766e; }
+        .legend-item.user strong { color: #1d4ed8; }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .card {
+            background: linear-gradient(160deg, #f7fbff 0%, #f8fff9 100%);
+            border: 1px solid #d6ebf3;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .card .k { font-size: 11px; text-transform: uppercase; color: #4f7c91; letter-spacing: .08em; margin-bottom: 8px; }
+        .card .v { font-size: 24px; font-weight: 800; color: #0f3348; }
+        .card .u { font-size: 12px; color: #56798a; }
+
+        .npk {
+            background: linear-gradient(135deg, #fef9e8 0%, #eefde8 100%);
+            border: 1px solid #e4dfb7;
+            border-radius: 14px;
+            padding: 16px;
+        }
+        .npk h3 { margin-bottom: 10px; }
+        .npk-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .npk-item {
+            background: #fff;
+            border: 1px solid #ece5ba;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+        .npk-item .label { font-size: 12px; color: #6f6534; margin-bottom: 4px; }
+        .npk-item .value { font-size: 24px; font-weight: 800; color: #5f551f; }
+
+        .log {
+            margin-top: 14px;
+            background: #f3f8fb;
+            border: 1px solid #cfe3ed;
+            border-radius: 10px;
+            padding: 10px;
+            color: #43687a;
+            font-size: 13px;
+            min-height: 42px;
+        }
+
+        @media (max-width: 980px) {
+            .config { grid-template-columns: 1fr; }
+            .grid { grid-template-columns: 1fr; }
+            .npk-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+            .legend { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="banner">Versión estable de presentación: abre este archivo como documento local. No depende del servidor.</div>
+        <div class="hero">
+            <h1>AgroTasker en Vivo</h1>
+            <p>Una sola página con fuente principal y fuente secundaria, actualizadas en tiempo real.</p>
+        </div>
+
+        <div class="config">
+            <div>
+                <label for="userChannelId">Canal secundario</label>
+                <input id="userChannelId" placeholder="Ej: 1234567">
+            </div>
+            <div>
+                <label for="userApiKey">Read API Key</label>
+                <input id="userApiKey" placeholder="Opcional" type="password">
+            </div>
+            <button class="btn" id="saveConfigBtn">Guardar y conectar</button>
+        </div>
+
+        <div class="statusbar">
+            <div class="pill" id="status-main">Principal: esperando...</div>
+            <div class="pill" id="status-user">Secundario: esperando...</div>
+            <div class="pill" id="status-refresh">Refresco: cada 15s</div>
+            <div class="pill" id="status-time">Última actualización: --</div>
+        </div>
+
+        <section class="legend">
+            <div class="legend-item main">
+                <strong>Principal</strong>
+                ThingSpeak + Dropbox con humedad, temperatura, pH, EC y NPK.
+            </div>
+            <div class="legend-item user">
+                <strong>Secundario</strong>
+                Tu ThingSpeak de 7 fields. Si no llegan datos, queda en espera.
+            </div>
+        </section>
+
+        <div class="grid">
+            <section class="panel panel-main">
+                <span class="source-tag main">Principal</span>
+                <h2>Principal + Dropbox</h2>
+                <div class="subtitle">Lectura base del cultivo.</div>
+                <div class="cards" id="mainCards"></div>
+                <div class="log" id="mainLog"></div>
+            </section>
+
+            <section class="panel panel-user">
+                <span class="source-tag user">Secundario</span>
+                <h2>Canal Secundario</h2>
+                <div class="subtitle">Solo muestra datos cuando llegan.</div>
+                <div class="cards" id="userCards"></div>
+                <div class="log" id="userLog"></div>
+            </section>
+        </div>
+
+        <section class="npk">
+            <h3>Resumen rápido</h3>
+            <div class="npk-grid">
+                <div class="npk-item"><div class="label">EC</div><div class="value" id="quickEC">--</div></div>
+                <div class="npk-item"><div class="label">N</div><div class="value" id="quickN">--</div></div>
+                <div class="npk-item"><div class="label">P</div><div class="value" id="quickP">--</div></div>
+                <div class="npk-item"><div class="label">K</div><div class="value" id="quickK">--</div></div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const REFRESH_MS = 15000;
+        const mainCardsEl = document.getElementById('mainCards');
+        const userCardsEl = document.getElementById('userCards');
+        const statusMainEl = document.getElementById('status-main');
+        const statusUserEl = document.getElementById('status-user');
+        const statusTimeEl = document.getElementById('status-time');
+        const mainLogEl = document.getElementById('mainLog');
+        const userLogEl = document.getElementById('userLog');
+
+        const userChannelIdInput = document.getElementById('userChannelId');
+        const userApiKeyInput = document.getElementById('userApiKey');
+        const saveConfigBtn = document.getElementById('saveConfigBtn');
+        const DEFAULT_USER_CHANNEL_ID = '3341502';
+        const DEMO_MAIN_FEED = {
+            created_at: 'Demo local',
+            field1: 68.40,
+            field2: 27.20,
+            field3: 52.00,
+            field4: 6.20,
+            field5: 18.00,
+            field6: 11.00,
+            field7: 22.00,
+            entry_id: 'demo'
+        };
+        const DEMO_USER_FEED = {
+            created_at: 'Demo local',
+            field1: 31.10,
+            field2: 18.00,
+            field3: 6.00,
+            field4: 51.00,
+            field5: 12.00,
+            field6: 9.00,
+            field7: 14.00,
+            entry_id: 'demo'
+        };
+
+        const MAIN_MAP = [
+            { key: 'field1', label: 'Humedad Suelo', unit: '%' },
+            { key: 'field2', label: 'Temperatura', unit: '°C' },
+            { key: 'field3', label: 'EC', unit: 'uS/cm' },
+            { key: 'field4', label: 'pH', unit: '' },
+            { key: 'field5', label: 'Nitrógeno (N)', unit: 'mg/L' },
+            { key: 'field6', label: 'Fósforo (P)', unit: 'mg/L' },
+            { key: 'field7', label: 'Potasio (K)', unit: 'mg/L' }
+        ];
+
+        const USER_MAP = [
+            { key: 'field1', label: 'Temperatura', unit: '°C' },
+            { key: 'field2', label: 'Humedad', unit: '%' },
+            { key: 'field3', label: 'pH', unit: '' },
+            { key: 'field4', label: 'Conductividad', unit: 'uS/cm' },
+            { key: 'field5', label: 'Nitrógeno (N)', unit: 'mg/L' },
+            { key: 'field6', label: 'Fósforo (P)', unit: 'mg/L' },
+            { key: 'field7', label: 'Potasio (K)', unit: 'mg/L' }
+        ];
+
+        function formatValue(v) {
+            if (v === null || v === undefined || v === '') return 'Esperando datos';
+            const n = Number(v);
+            if (!Number.isFinite(n) || n <= 0) return 'Esperando datos';
+            return n.toFixed(2);
+        }
+
+        function renderCards(container, map, feed) {
+            container.innerHTML = map.map(item => {
+                const value = feed ? formatValue(feed[item.key]) : 'Esperando datos';
+                const unit = item.unit ? ' ' + item.unit : '';
+                return `
+                    <div class="card">
+                        <div class="k">${item.label}</div>
+                        <div class="v">${value}</div>
+                        <div class="u">${unit.trim()}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getLatestMainFeed(data) {
+            const extra = Array.isArray(data.extra_thingspeak) ? data.extra_thingspeak : [];
+            if (extra.length > 0) {
+                const last = extra[extra.length - 1];
+                return last.thingspeak || null;
+            }
+
+            const merged = Array.isArray(data.merged) ? data.merged : [];
+            for (let i = merged.length - 1; i >= 0; i--) {
+                if (merged[i].thingspeak_nearest) {
+                    return merged[i].thingspeak_nearest;
+                }
+            }
+            return null;
+        }
+
+        function getLatestUserFeed(data) {
+            const user = Array.isArray(data.user_thingspeak) ? data.user_thingspeak : [];
+            if (user.length === 0) return null;
+            return user[user.length - 1];
+        }
+
+        function updateQuickNpk(feed) {
+            document.getElementById('quickEC').textContent = formatValue(feed ? feed.field3 : null);
+            document.getElementById('quickN').textContent = formatValue(feed ? feed.field5 : null);
+            document.getElementById('quickP').textContent = formatValue(feed ? feed.field6 : null);
+            document.getElementById('quickK').textContent = formatValue(feed ? feed.field7 : null);
+        }
+
+        function countUsableValues(feed, keys) {
+            if (!feed) return 0;
+            return keys.reduce((count, key) => {
+                const value = Number(feed[key]);
+                return count + (Number.isFinite(value) && value > 0 ? 1 : 0);
+            }, 0);
+        }
+
+        function saveLastFeeds(mainFeed, userFeed) {
+            if (mainFeed) {
+                localStorage.setItem('agrotasker_last_main_feed', JSON.stringify(mainFeed));
+            }
+            if (userFeed) {
+                localStorage.setItem('agrotasker_last_user_feed', JSON.stringify(userFeed));
+            }
+        }
+
+        function loadLastFeed(storageKey) {
+            try {
+                const raw = localStorage.getItem(storageKey);
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function currentConfig() {
+            return {
+                channelId: localStorage.getItem('agrotasker_user_channel_id') || DEFAULT_USER_CHANNEL_ID,
+                apiKey: localStorage.getItem('agrotasker_user_api_key') || ''
+            };
+        }
+
+        function buildMergedUrl() {
+            const cfg = currentConfig();
+            const params = new URLSearchParams();
+            params.set('channel', 'soil');
+            params.set('max_gap_minutes', '30');
+            if (cfg.channelId) params.set('user_channel_id', cfg.channelId);
+            if (cfg.apiKey) params.set('user_api_key', cfg.apiKey);
+            return `/api/data/merged?${params.toString()}`;
+        }
+
+        async function refreshAll() {
+            const nowText = new Date().toLocaleString('es-ES');
+            const cachedMain = loadLastFeed('agrotasker_last_main_feed');
+            const cachedUser = loadLastFeed('agrotasker_last_user_feed');
+            const fallbackMain = countUsableValues(cachedMain, ['field1', 'field2', 'field3', 'field4', 'field5', 'field6', 'field7']) >= 2
+                ? cachedMain
+                : DEMO_MAIN_FEED;
+            const fallbackUser = countUsableValues(cachedUser, ['field1', 'field2', 'field3', 'field4', 'field5', 'field6', 'field7']) >= 2
+                ? cachedUser
+                : DEMO_USER_FEED;
+
+            renderCards(mainCardsEl, MAIN_MAP, fallbackMain);
+            renderCards(userCardsEl, USER_MAP, fallbackUser);
+            updateQuickNpk(fallbackMain);
+
+            if (location.protocol === 'file:') {
+                statusMainEl.textContent = 'Principal: demo local';
+                statusUserEl.textContent = 'Secundario: demo local';
+                mainLogEl.textContent = 'Vista local sin servidor. Modo presentación activo.';
+                userLogEl.textContent = 'Vista local sin servidor. Modo presentación activo.';
+                statusTimeEl.textContent = `Última actualización: ${nowText}`;
+                return;
+            }
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 6000);
+                const resp = await fetch(buildMergedUrl(), { cache: 'no-store', signal: controller.signal });
+                clearTimeout(timeoutId);
+                const data = await resp.json();
+
+                const mainCandidate = getLatestMainFeed(data);
+                const userCandidate = getLatestUserFeed(data);
+                const mainUsable = countUsableValues(mainCandidate, ['field1', 'field2', 'field3', 'field4', 'field5', 'field6', 'field7']);
+                const userUsable = countUsableValues(userCandidate, ['field1', 'field2', 'field3', 'field4', 'field5', 'field6', 'field7']);
+
+                const mainFeed = mainUsable >= 2 ? mainCandidate : fallbackMain;
+                const userFeed = userUsable >= 2 ? userCandidate : fallbackUser;
+
+                renderCards(mainCardsEl, MAIN_MAP, mainFeed);
+                renderCards(userCardsEl, USER_MAP, userFeed);
+                updateQuickNpk(mainFeed);
+                saveLastFeeds(mainFeed, userFeed);
+
+                if (mainFeed === fallbackMain && mainUsable < 2) {
+                    statusMainEl.textContent = 'Principal: demo local';
+                    mainLogEl.textContent = 'Sin datos útiles en principal; mostrando demo para la presentación.';
+                } else {
+                    statusMainEl.textContent = 'Base: conectado';
+                    mainLogEl.textContent = `Último registro base: ${mainFeed.created_at || '--'} | Entry: ${mainFeed.entry_id || '--'}`;
+                }
+
+                if (userFeed === fallbackUser && userUsable < 2) {
+                    statusUserEl.textContent = 'Secundario: demo local';
+                    userLogEl.textContent = 'Sin datos útiles en secundario; mostrando demo para la presentación.';
+                } else {
+                    statusUserEl.textContent = 'Tu canal: conectado';
+                    userLogEl.textContent = `Último registro tu canal: ${userFeed.created_at || '--'} | Entry: ${userFeed.entry_id || '--'}`;
+                }
+
+                statusTimeEl.textContent = `Última actualización: ${nowText}`;
+            } catch (err) {
+                renderCards(mainCardsEl, MAIN_MAP, fallbackMain);
+                renderCards(userCardsEl, USER_MAP, fallbackUser);
+                updateQuickNpk(fallbackMain);
+
+                statusMainEl.textContent = cachedMain ? 'Principal: sin red (última lectura)' : 'Principal: demo local';
+                statusUserEl.textContent = cachedUser ? 'Secundario: sin red (última lectura)' : 'Secundario: demo local';
+                mainLogEl.textContent = `Error de red: ${err.message}`;
+                userLogEl.textContent = 'Modo demo para la presentación. Reintento automático en 15s.';
+                statusTimeEl.textContent = `Último intento: ${nowText}`;
+            }
+        }
+
+        function loadConfigIntoForm() {
+            const cfg = currentConfig();
+            userChannelIdInput.value = cfg.channelId;
+            userApiKeyInput.value = cfg.apiKey;
+        }
+
+        saveConfigBtn.addEventListener('click', () => {
+            localStorage.setItem('agrotasker_user_channel_id', userChannelIdInput.value.trim());
+            localStorage.setItem('agrotasker_user_api_key', userApiKeyInput.value.trim());
+            refreshAll();
+        });
+
+        loadConfigIntoForm();
+        refreshAll();
+        setInterval(refreshAll, REFRESH_MS);
+    </script>
+</body>
+</html>

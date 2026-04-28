@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroTasker - Monitoreo Inteligente con IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2ecc71;
+            --secondary: #3498db;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --gray: #95a5a6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* ===== STATUS BARS ===== */
+        .status-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--light);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.green {
+            background: #2ecc71;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        .status-dot.yellow {
+            background: #f39c12;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        }
+
+        .status-dot.red {
+            background: #e74c3c;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== TRAFFIC LIGHT ===== */
+        .traffic-light-indicator {
+            display: inline-flex;
+            gap: 4px;
+            padding: 6px 12px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 20px;
+            margin-left: 10px;
+        }
+
+        .light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: all 0.3s;
+        }
+
+        .light.active.green {
+            background: #2ecc71;
+            box-shadow: 0 0 8px #2ecc71;
+        }
+
+        .light.active.yellow {
+            background: #f39c12;
+            box-shadow: 0 0 8px #f39c12;
+        }
+
+        .light.active.red {
+            background: #e74c3c;
+            box-shadow: 0 0 8px #e74c3c;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-icon {
+            font-size: 24px;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card.status-green {
+            border-left-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        .card.status-yellow {
+            border-left-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .card.status-red {
+            border-left-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .card-label {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .card-value {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        .card-unit {
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: normal;
+        }
+
+        .card-lights {
+            display: flex;
+            gap: 4px;
+            margin-left: 10px;
+        }
+
+        /* ===== ALARM PANEL ===== */
+        .alarm-panel {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .alarm-critical {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .alarm-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            font-size: 13px;
+        }
+
+        .alarm-critical .alarm-item {
+            background: rgba(231, 76, 60, 0.1);
+            border-left-color: #e74c3c;
+            color: #c0392b;
+        }
+
+        .alarm-warning .alarm-item {
+            background: rgba(243, 156, 18, 0.1);
+            border-left-color: #f39c12;
+            color: #d68910;
+        }
+
+        .alarm-normal .alarm-item {
+            background: rgba(46, 204, 113, 0.1);
+            border-left-color: #2ecc71;
+            color: #27ae60;
+        }
+
+        .alarm-icon {
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        /* ===== FORECAST CHART ===== */
+        .forecast-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            align-items: flex-end;
+            height: 150px;
+        }
+
+        .forecast-bar {
+            flex: 1;
+            background: linear-gradient(180deg, #3498db, #2980b9);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            min-height: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 5px;
+            text-align: center;
+            font-size: 11px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .forecast-label {
+            font-size: 10px;
+            text-align: center;
+            margin-top: 5px;
+            color: var(--gray);
+        }
+
+        /* ===== PREDICTIONS ===== */
+        .prediction-item {
+            background: var(--light);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .prediction-label {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .prediction-current {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .prediction-forecast {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        /* ===== LOADING ===== */
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 5px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 24px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .forecast-container {
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <h1>🌾 AgroTasker - Monitoreo Inteligente con IA</h1>
+            <p>Sistema de predicciones con redes neuronales GRU y alarmas automáticas</p>
+            
+            <div class="status-bar">
+                <div class="status-item">
+                    Datos: <span class="status-dot green"></span> En vivo
+                </div>
+                <div class="status-item">
+                    Predicciones: <span class="loading"></span>
+                </div>
+                <div class="status-item" id="lastUpdate">
+                    Última act.: Cargando...
+                </div>
+                <div class="status-item" id="modelStatus">
+                    Modelo: Verificando...
+                </div>
+            </div>
+        </header>
+
+        <!-- ALARMAS -->
+        <div class="panel" style="background: #fff3cd; border: 2px solid #ffc107;">
+            <h2>
+                <span class="panel-icon">🚨</span>
+                Centro de Alertas y Alarmas
+            </h2>
+            <div id="alarmContainer">
+                <div class="alarm-item">
+                    <span class="alarm-icon">⏳</span>
+                    Cargando alarmas...
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN SENSORS + PREDICTIONS -->
+        <div class="grid">
+            <!-- SENSORES PRINCIPALES -->
+            <div class="panel">
+                <h2>
+                    <span class="panel-icon">📊</span>
+                    Mediciones en Vivo
+                </h2>
+                <div id="mainCards"></div>
+            </div>
+
+            <!-- PREDICCIONES IA -->
+            <div class="panel">
+                <h2>
+                    <span class="panel-icon">🤖</span>
+                    Predicciones (Próximas 1.5h)
+                </h2>
+                <div id="predictionsContainer">
+                    <div style="color: var(--gray); text-align: center; padding: 20px;">
+                        <span class="loading"></span>
+                        Entrenando modelo...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRÁFICOS DE PRONÓSTICO -->
+        <div class="grid">
+            <div class="panel">
+                <h2>
+                    <span class="panel-icon">📈</span>
+                    Pronóstico de Humedad
+                </h2>
+                <div id="forecast-field1" class="forecast-container"></div>
+            </div>
+
+            <div class="panel">
+                <h2>
+                    <span class="panel-icon">🌡️</span>
+                    Pronóstico de Temperatura
+                </h2>
+                <div id="forecast-field2" class="forecast-container"></div>
+            </div>
+
+            <div class="panel">
+                <h2>
+                    <span class="panel-icon">⚡</span>
+                    Pronóstico de EC
+                </h2>
+                <div id="forecast-field3" class="forecast-container"></div>
+            </div>
+
+            <div class="panel">
+                <h2>
+                    <span class="panel-icon">🧪</span>
+                    Pronóstico de pH
+                </h2>
+                <div id="forecast-field4" class="forecast-container"></div>
+            </div>
+        </div>
+
+        <!-- INFORMACIÓN SISTEMA -->
+        <div class="panel" style="background: #f8f9fa;">
+            <h2>
+                <span class="panel-icon">ℹ️</span>
+                Estado del Sistema
+            </h2>
+            <div id="systemStatus" style="font-size: 13px; line-height: 1.8;">
+                <p>⏳ Inicializando...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        const COLORS = {
+            green: '#2ecc71',
+            yellow: '#f39c12',
+            red: '#e74c3c'
+        };
+
+        // Datos demo local (fallback)
+        const DEMO_DATA = {
+            predictions: {
+                field1: {
+                    field_name: 'Humedad Suelo (%)',
+                    current: 68.40,
+                    forecast: [69.5, 70.2, 71.0, 70.8, 70.5, 69.8]
+                },
+                field2: {
+                    field_name: 'Temperatura (°C)',
+                    current: 27.20,
+                    forecast: [27.5, 27.8, 28.0, 27.9, 27.5, 27.0]
+                },
+                field3: {
+                    field_name: 'EC (uS/cm)',
+                    current: 52.00,
+                    forecast: [53.0, 54.2, 55.0, 54.8, 54.0, 53.5]
+                },
+                field4: {
+                    field_name: 'pH',
+                    current: 6.20,
+                    forecast: [6.25, 6.30, 6.35, 6.32, 6.28, 6.25]
+                }
+            },
+            alarms: {
+                critical: [],
+                early_warning: [],
+                normal: [
+                    { field: 'field1', field_name: 'Humedad', status: 'green', current: 68.40, message: '✓ NORMAL: Humedad bajo control' },
+                    { field: 'field2', field_name: 'Temperatura', status: 'green', current: 27.20, message: '✓ NORMAL: Temperatura óptima' },
+                    { field: 'field3', field_name: 'EC', status: 'green', current: 52.00, message: '✓ NORMAL: Conductividad normal' },
+                    { field: 'field4', field_name: 'pH', status: 'green', current: 6.20, message: '✓ NORMAL: pH en rango' }
+                ]
+            },
+            lights: {
+                field1: 'green',
+                field2: 'green',
+                field3: 'green',
+                field4: 'green'
+            }
+        };
+
+        let currentPredictions = null;
+        let currentAlarms = null;
+        let currentLights = null;
+
+        // ===== FUNCIONES PRINCIPALES =====
+
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.warn(`⚠️ API error (${endpoint}):`, error.message);
+                return null;
+            }
+        }
+
+        async function updatePredictions() {
+            const data = await fetchData('/predictions');
+            
+            if (data?.status === 'success') {
+                currentPredictions = data.data;
+                renderPredictions(data.data);
+                renderForecasts(data.data);
+            } else {
+                // Usar demo data
+                currentPredictions = DEMO_DATA.predictions;
+                renderPredictions(DEMO_DATA.predictions);
+                renderForecasts(DEMO_DATA.predictions);
+            }
+        }
+
+        async function updateAlarms() {
+            const data = await fetchData('/alarms');
+            
+            if (data?.status === 'success') {
+                currentAlarms = data.alarms;
+                renderAlarms(data.alarms);
+            } else {
+                currentAlarms = DEMO_DATA.alarms;
+                renderAlarms(DEMO_DATA.alarms);
+            }
+        }
+
+        async function updateTrafficLights() {
+            const data = await fetchData('/traffic-light');
+            
+            if (data?.status === 'success') {
+                currentLights = data.lights;
+                updateMainCards(data.lights);
+            } else {
+                currentLights = DEMO_DATA.lights;
+                updateMainCards(DEMO_DATA.lights);
+            }
+        }
+
+        async function updateHealth() {
+            const data = await fetchData('/health');
+            
+            if (data?.status === 'ok') {
+                const modelsText = data.models.length > 0 
+                    ? `${data.models.length} modelos GRU cargados`
+                    : 'Modelos no entrenados';
+                
+                document.getElementById('modelStatus').textContent = 
+                    `Modelo: ${modelsText}`;
+                
+                document.getElementById('systemStatus').innerHTML = `
+                    <p>✓ <strong>Servidor:</strong> Conectado</p>
+                    <p>✓ <strong>Modelos IA:</strong> ${modelsText}</p>
+                    <p>✓ <strong>Predicciones activas:</strong> ${data.has_predictions ? 'Sí' : 'No'}</p>
+                    <p>✓ <strong>Última actualización:</strong> ${new Date(data.last_update).toLocaleTimeString()}</p>
+                    <p style="font-size: 11px; color: #7f8c8d; margin-top: 10px;">
+                        Variables: ${data.models.join(', ') || 'N/A'}
+                    </p>
+                `;
+            } else {
+                document.getElementById('modelStatus').textContent = 'Modelo: Demo local';
+                document.getElementById('systemStatus').innerHTML = `
+                    <p>⚠️ <strong>Servidor:</strong> Modo demo (no conectado a API)</p>
+                    <p>Para activar predicciones:</p>
+                    <p style="font-family: monospace; background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px;">
+                        python predictions_model.py train
+                    </p>
+                    <p style="font-family: monospace; background: #f0f0f0; padding: 10px; border-radius: 4px;">
+                        python predictions_server.py
+                    </p>
+                `;
+            }
+        }
+
+        // ===== RENDERIZADO =====
+
+        function renderPredictions(predictions) {
+            const container = document.getElementById('predictionsContainer');
+            
+            if (!predictions) {
+                container.innerHTML = '<p style="color: #7f8c8d;">Esperando modelo...</p>';
+                return;
+            }
+
+            let html = '';
+            
+            for (const [field, data] of Object.entries(predictions)) {
+                const current = data.current.toFixed(2);
+                const nextValue = data.forecast[0]?.toFixed(2) || 'N/A';
+                const trend = data.forecast[0] > data.current ? '📈' : '📉';
+                
+                html += `
+                    <div class="prediction-item">
+                        <div class="prediction-label">
+                            ${data.field_name}
+                        </div>
+                        <div class="prediction-current">
+                            ${current} 
+                            <span style="font-size: 14px; color: var(--gray);">
+                                → ${nextValue}
+                            </span>
+                        </div>
+                        <div class="prediction-forecast">
+                            <strong>Pronóstico:</strong> ${trend} ${data.forecast.slice(0, 3).map(v => v.toFixed(2)).join(' → ')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function renderAlarms(alarms) {
+            const container = document.getElementById('alarmContainer');
+            let html = '';
+
+            // Críticos
+            if (alarms.critical?.length > 0) {
+                html += '<div class="alarm-panel alarm-critical">';
+                html += '<strong style="font-size: 14px;">⛔ ALERTAS CRÍTICAS</strong><div>';
+                alarms.critical.forEach(alarm => {
+                    html += `
+                        <div class="alarm-item">
+                            <span class="alarm-icon">🔴</span>
+                            ${alarm.message}
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+
+            // Advertencias tempranas
+            if (alarms.early_warning?.length > 0) {
+                html += '<div class="alarm-panel">';
+                html += '<strong style="font-size: 14px;">⚠️ ALERTAS TEMPRANAS</strong><div>';
+                alarms.early_warning.forEach(alarm => {
+                    html += `
+                        <div class="alarm-item alarm-warning">
+                            <span class="alarm-icon">🟡</span>
+                            ${alarm.message}
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+
+            // Normal
+            if (alarms.normal?.length > 0) {
+                html += '<div class="alarm-normal">';
+                alarms.normal.forEach(alarm => {
+                    html += `
+                        <div class="alarm-item">
+                            <span class="alarm-icon">✓</span>
+                            ${alarm.message}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html || '<p style="color: #7f8c8d;">Sin datos de alarmas</p>';
+            
+            // Actualizar último update
+            document.getElementById('lastUpdate').textContent = 
+                `Última act.: ${new Date().toLocaleTimeString()}`;
+        }
+
+        function renderForecasts(predictions) {
+            for (const [field, data] of Object.entries(predictions)) {
+                const containerId = `forecast-${field}`;
+                const container = document.getElementById(containerId);
+                
+                if (!container || !data.forecast) continue;
+
+                const maxVal = Math.max(...data.forecast);
+                const minVal = Math.min(...data.forecast);
+                const range = maxVal - minVal || 1;
+
+                let html = '';
+                data.forecast.forEach((value, idx) => {
+                    const height = ((value - minVal) / range * 100 || 10);
+                    html += `
+                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                            <div class="forecast-bar" style="height: ${height}%;">
+                                ${value.toFixed(1)}
+                            </div>
+                            <div class="forecast-label">+${idx + 1}</div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            }
+        }
+
+        function updateMainCards(lights) {
+            const container = document.getElementById('mainCards');
+            const predictions = currentPredictions || DEMO_DATA.predictions;
+            
+            let html = '';
+            
+            for (const [field, status] of Object.entries(lights)) {
+                const data = predictions[field];
+                if (!data) continue;
+
+                const current = data.current.toFixed(2);
+                const statusClass = `status-${status}`;
+                const lightColor = COLORS[status] || '#ddd';
+                
+                html += `
+                    <div class="card ${statusClass}">
+                        <div>
+                            <div class="card-label">${data.field_name}</div>
+                            <div class="card-value">
+                                ${current}
+                                <span class="card-unit">
+                                    ${data.field_name.includes('%') ? '%' : 
+                                      data.field_name.includes('°C') ? '°C' : 
+                                      data.field_name.includes('uS/cm') ? 'uS/cm' : ''}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="traffic-light-indicator">
+                            <div class="light active ${status}" style="background: ${lightColor}; box-shadow: 0 0 8px ${lightColor};"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // ===== INICIALIZACIÓN =====
+
+        async function init() {
+            console.log('🚀 Inicializando dashboard con IA...');
+            
+            // Cargar datos iniciales
+            await updateHealth();
+            await updatePredictions();
+            await updateAlarms();
+            await updateTrafficLights();
+            
+            // Actualizar cada 15 segundos
+            setInterval(async () => {
+                await updatePredictions();
+                await updateAlarms();
+                await updateTrafficLights();
+            }, 15000);
+            
+            // Actualizar health cada 30 segundos
+            setInterval(updateHealth, 30000);
+            
+            console.log('✓ Dashboard iniciado correctamente');
+        }
+
+        // Iniciar cuando cargue la página
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

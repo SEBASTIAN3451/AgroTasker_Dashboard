@@ -3,17 +3,32 @@ import json
 import os
 import urllib.request
 from urllib.parse import urlparse
+import time
 
 class ProxyHandler(SimpleHTTPRequestHandler):
+    # Cache de datos para evitar solicitudes repetidas
+    cache = {}
+    cache_time = 300  # segundos (5 minutos)
+    
+    def end_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Cache-Control', 'max-age=30')
+        super().end_headers()
+    
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.end_headers()
+    
     def do_GET(self):
         parsed_path = urlparse(self.path)
         
-        # Redirigir raíz a dashboard.html para comodidad
-        if parsed_path.path in ('/', '/index.html'):
-            self.path = '/dashboard.html'
+        # Redirigir raíz a dashboard_simple.html
+        if parsed_path.path in ('/', '/index.html', '/dashboard.html'):
+            self.path = '/dashboard_simple.html'
             return SimpleHTTPRequestHandler.do_GET(self)
 
-        # Rutas del API proxy
         if parsed_path.path.startswith('/api/thingspeak/'):
             channel_type = parsed_path.path.split('/')[-1]
             
@@ -24,27 +39,78 @@ class ProxyHandler(SimpleHTTPRequestHandler):
             }
             
             if channel_type in channels:
+                # Verificar caché
+                now = time.time()
+                if channel_type in self.cache:
+                    cached_data, cache_timestamp = self.cache[channel_type]
+                    if now - cache_timestamp < self.cache_time:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps(cached_data).encode())
+                        return
+                
                 ch = channels[channel_type]
-                url = f"https://api.thingspeak.com/channels/{ch['id']}/feeds.json?api_key={ch['key']}&results=10"
+                url = f"https://api.thingspeak.com/channels/{ch['id']}/feeds.json?api_key={ch['key']}&results=60"
                 
                 try:
                     with urllib.request.urlopen(url, timeout=10) as response:
                         data = response.read()
                     
+                    json_data = json.loads(data)
+                    
+                    # Limpiar datos: filtrar valores cero inútiles pero mantener datos válidos
+                    if json_data.get('feeds'):
+                        cleaned_feeds = []
+                        for feed in json_data['feeds']:
+                            cleaned_feed = {}
+                            for key, value in feed.items():
+                                if key == 'created_at':
+                                    cleaned_feed[key] = value
+                                elif value is not None and value != '' and value != '0':
+                                    try:
+                                        float_val = float(value)
+                                        # Aceptar cualquier número válido (incluso 0 si es dato actual)
+                                        cleaned_feed[key] = value
+                                    except:
+                                        pass
+                            if cleaned_feed:
+                                cleaned_feeds.append(cleaned_feed)
+                        
+                        json_data['feeds'] = cleaned_feeds
+                    
+                    # Guardar en caché
+                    ProxyHandler.cache[channel_type] = (json_data, now)
+                    
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
-                    self.send_header('Access-Control-Allow-Origin', '*')
                     self.end_headers()
-                    self.wfile.write(data)
+                    self.wfile.write(json.dumps(json_data).encode())
                     return
+                    
+                except urllib.error.URLError as e:
+                    # Error de conexión - retornar caché viejo si existe
+                    if channel_type in self.cache:
+                        cached_data, _ = self.cache[channel_type]
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps(cached_data).encode())
+                        return
+                    
+                    self.send_response(503)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'ThingSpeak no disponible', 'feeds': []}).encode())
+                    return
+                    
                 except Exception as e:
                     self.send_response(500)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
-                    self.wfile.write(json.dumps({'error': str(e)}).encode())
+                    self.wfile.write(json.dumps({'error': str(e), 'feeds': []}).encode())
                     return
         
-        # Archivos estáticos
         return SimpleHTTPRequestHandler.do_GET(self)
 
 if __name__ == '__main__':
