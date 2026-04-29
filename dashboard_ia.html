@@ -156,6 +156,14 @@
             gap: 10px;
         }
 
+        .panel-subtitle {
+            color: var(--gray);
+            font-size: 12px;
+            line-height: 1.45;
+            margin-top: -8px;
+            margin-bottom: 14px;
+        }
+
         .source-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -418,6 +426,55 @@
             color: var(--gray);
         }
 
+        .forecast-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .forecast-stat {
+            background: #f6f9fa;
+            border: 1px solid #edf1f3;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 11px;
+            color: #607780;
+        }
+
+        .forecast-stat strong {
+            display: block;
+            color: var(--dark);
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .explain-panel {
+            background: #eef7ff;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .explain-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .explain-item {
+            background: white;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: #4f6873;
+        }
+
+        .explain-item strong {
+            display: block;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
         /* ===== PREDICTIONS ===== */
         .prediction-item {
             background: var(--light);
@@ -487,6 +544,11 @@
             .forecast-container {
                 height: 120px;
             }
+
+            .forecast-summary,
+            .explain-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -494,14 +556,14 @@
     <div class="container">
         <!-- HEADER -->
         <header>
-            <h1>🌾 AgroTasker - Monitoreo Inteligente con IA</h1>
-            <p>Sistema de predicciones con redes neuronales Transformer y alarmas automáticas</p>
+            <h1>🌾 AgroTasker IA - Fuentes, Alertas y Pronóstico</h1>
+            <p>Monitoreo agrícola con ThingSpeak principal, respaldo Dropbox, canal secundario y predicciones Transformer.</p>
             
             <div class="status-bar">
                 <div class="status-item">
                     Datos: <span class="status-dot green"></span> Conectado
                 </div>
-                <div class="status-item">
+                <div class="status-item" id="predictionStatus">
                     Predicciones: <span class="loading"></span>
                 </div>
                 <div class="status-item" id="lastUpdate">
@@ -520,8 +582,8 @@
             <div class="source-panel primary">
                 <div class="source-head">
                     <div>
-                        <div class="source-title">Principal + Dropbox</div>
-                        <div class="source-subtitle" id="primarySourceSubtitle">ThingSpeak principal con respaldo Dropbox</div>
+                        <div class="source-title">Fuente A: Principal + Dropbox</div>
+                        <div class="source-subtitle" id="primarySourceSubtitle">Usa ThingSpeak principal; si llega inválido, muestra el respaldo histórico de Dropbox.</div>
                     </div>
                     <div class="source-badge" id="primarySourceBadge">Verificando</div>
                 </div>
@@ -533,8 +595,8 @@
             <div class="source-panel secondary">
                 <div class="source-head">
                     <div>
-                        <div class="source-title">Tu ThingSpeak secundario</div>
-                        <div class="source-subtitle" id="secondarySourceSubtitle">Se actualiza cuando llegan lecturas; si no, conserva la última válida</div>
+                        <div class="source-title">Fuente B: ThingSpeak secundario</div>
+                        <div class="source-subtitle" id="secondarySourceSubtitle">Tu canal en vivo. Si no llega una lectura nueva válida, conserva la última lectura guardada.</div>
                     </div>
                     <div class="source-badge" id="secondarySourceBadge">Verificando</div>
                 </div>
@@ -548,8 +610,9 @@
         <div class="panel" style="background: #fff3cd; border: 2px solid #ffc107;">
             <h2>
                 <span class="panel-icon">🚨</span>
-                Centro de Alertas y Alarmas
+                Alertas del Cultivo
             </h2>
+            <div class="panel-subtitle">Clasifica las lecturas y el pronóstico en normal, alerta temprana o crítico según umbrales agrícolas.</div>
             <div id="alarmContainer">
                 <div class="alarm-item">
                     <span class="alarm-icon">⏳</span>
@@ -564,8 +627,9 @@
             <div class="panel">
                 <h2>
                     <span class="panel-icon">📊</span>
-                    Mediciones en Vivo
+                    Lecturas Usadas por la IA
                 </h2>
+                <div class="panel-subtitle">Valores actuales que alimentan la semaforización y sirven como punto inicial del pronóstico.</div>
                 <div id="mainCards"></div>
             </div>
 
@@ -573,8 +637,9 @@
             <div class="panel">
                 <h2>
                     <span class="panel-icon">🤖</span>
-                    Predicciones (Próximas 1.5h)
+                    Resumen del Pronóstico Transformer
                 </h2>
+                <div class="panel-subtitle">Compara la lectura actual contra la primera predicción futura y la tendencia inmediata.</div>
                 <div id="predictionsContainer">
                     <div style="color: var(--gray); text-align: center; padding: 20px;">
                         <span class="loading"></span>
@@ -584,37 +649,54 @@
             </div>
         </div>
 
+        <div class="panel explain-panel">
+            <h2>
+                <span class="panel-icon">🧭</span>
+                Cómo leer las gráficas
+            </h2>
+            <div class="explain-grid">
+                <div class="explain-item"><strong>+1 a +6</strong>Cada barra es un paso futuro del modelo Transformer; cada paso equivale aproximadamente a 15 minutos.</div>
+                <div class="explain-item"><strong>Altura</strong>La barra más alta representa el valor mayor dentro del pronóstico de esa variable.</div>
+                <div class="explain-item"><strong>Tendencia</strong>El resumen indica si la variable sube, baja o se mantiene estable frente al valor actual.</div>
+                <div class="explain-item"><strong>Alarmas</strong>Si el pronóstico se acerca o supera umbrales, el centro de alertas cambia a amarillo o rojo.</div>
+            </div>
+        </div>
+
         <!-- GRÁFICOS DE PRONÓSTICO -->
         <div class="grid">
             <div class="panel">
                 <h2>
                     <span class="panel-icon">📈</span>
-                    Pronóstico de Humedad
+                    Humedad: próximos 90 minutos
                 </h2>
+                <div class="forecast-summary" id="forecast-summary-field1"></div>
                 <div id="forecast-field1" class="forecast-container"></div>
             </div>
 
             <div class="panel">
                 <h2>
                     <span class="panel-icon">🌡️</span>
-                    Pronóstico de Temperatura
+                    Temperatura: próximos 90 minutos
                 </h2>
+                <div class="forecast-summary" id="forecast-summary-field2"></div>
                 <div id="forecast-field2" class="forecast-container"></div>
             </div>
 
             <div class="panel">
                 <h2>
                     <span class="panel-icon">🧪</span>
-                    Pronóstico de pH
+                    pH: próximos 90 minutos
                 </h2>
+                <div class="forecast-summary" id="forecast-summary-field3"></div>
                 <div id="forecast-field3" class="forecast-container"></div>
             </div>
 
             <div class="panel">
                 <h2>
                     <span class="panel-icon">⚡</span>
-                    Pronóstico de EC
+                    EC: próximos 90 minutos
                 </h2>
+                <div class="forecast-summary" id="forecast-summary-field4"></div>
                 <div id="forecast-field4" class="forecast-container"></div>
             </div>
         </div>
@@ -623,7 +705,7 @@
         <div class="panel" style="background: #f8f9fa;">
             <h2>
                 <span class="panel-icon">ℹ️</span>
-                Estado del Sistema
+                Estado Técnico de Fuentes y Modelo
             </h2>
             <div id="systemStatus" style="font-size: 13px; line-height: 1.8;">
                 <p>⏳ Inicializando...</p>
@@ -874,6 +956,8 @@
                     `Modelo: ${modelsText}`;
                 document.getElementById('dataSourceStatus').textContent =
                     `Fuente: ${data.active_source || 'sin datos validos'}`;
+                document.getElementById('predictionStatus').textContent =
+                    `Predicciones: ${data.has_predictions ? 'activas, refresco 60s' : 'sin datos'}`;
                 
                 document.getElementById('systemStatus').innerHTML = `
                     <p>✓ <strong>Servidor:</strong> Conectado</p>
@@ -889,6 +973,7 @@
             } else {
                 document.getElementById('modelStatus').textContent = 'Modelo: Demo local';
                 document.getElementById('dataSourceStatus').textContent = 'Fuente: Demo local';
+                document.getElementById('predictionStatus').textContent = 'Predicciones: demo local';
                 document.getElementById('systemStatus').innerHTML = `
                     <p>⚠️ <strong>Servidor:</strong> Modo demo (no conectado a API)</p>
                     <p>Para activar predicciones:</p>
@@ -999,16 +1084,30 @@
             for (const [field, data] of Object.entries(predictions)) {
                 const containerId = `forecast-${field}`;
                 const container = document.getElementById(containerId);
+                const summary = document.getElementById(`forecast-summary-${field}`);
                 
                 if (!container || !data.forecast) continue;
 
                 const maxVal = Math.max(...data.forecast);
                 const minVal = Math.min(...data.forecast);
                 const range = maxVal - minVal || 1;
+                const first = data.forecast[0];
+                const last = data.forecast[data.forecast.length - 1];
+                const delta = last - data.current;
+                const unit = getUnit(data.field_name);
+                const trendLabel = Math.abs(delta) < 0.05 ? 'estable' : (delta > 0 ? 'sube' : 'baja');
+
+                if (summary) {
+                    summary.innerHTML = `
+                        <div class="forecast-stat">Actual<strong>${data.current.toFixed(2)} ${unit}</strong></div>
+                        <div class="forecast-stat">Último paso<strong>${last.toFixed(2)} ${unit}</strong></div>
+                        <div class="forecast-stat">Tendencia<strong>${trendLabel} ${formatSigned(delta)} ${unit}</strong></div>
+                    `;
+                }
 
                 let html = '';
                 data.forecast.forEach((value, idx) => {
-                    const height = ((value - minVal) / range * 100 || 10);
+                    const height = Math.max(18, ((value - minVal) / range * 82) + 18);
                     html += `
                         <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
                             <div class="forecast-bar" style="height: ${height}%;">
@@ -1021,6 +1120,18 @@
                 
                 container.innerHTML = html;
             }
+        }
+
+        function getUnit(fieldName) {
+            if (fieldName.includes('%')) return '%';
+            if (fieldName.includes('°C')) return '°C';
+            if (fieldName.includes('uS/cm')) return 'uS/cm';
+            return '';
+        }
+
+        function formatSigned(value) {
+            const fixed = Math.abs(value).toFixed(2);
+            return value >= 0 ? `+${fixed}` : `-${fixed}`;
         }
 
         function updateMainCards(lights) {
