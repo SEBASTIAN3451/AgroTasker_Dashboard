@@ -261,6 +261,29 @@
             line-height: 1.45;
         }
 
+        .source-meta {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .source-meta-item {
+            background: #fbfcfd;
+            border: 1px solid #edf1f3;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 11px;
+            color: #607780;
+        }
+
+        .source-meta-item strong {
+            display: block;
+            color: var(--dark);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
         .panel-icon {
             font-size: 24px;
         }
@@ -457,6 +480,10 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
+            .source-meta {
+                grid-template-columns: 1fr;
+            }
+
             .forecast-container {
                 height: 120px;
             }
@@ -499,6 +526,7 @@
                     <div class="source-badge" id="primarySourceBadge">Verificando</div>
                 </div>
                 <div class="source-values" id="primarySourceValues"></div>
+                <div class="source-meta" id="primarySourceMeta"></div>
                 <div class="source-note" id="primarySourceNote"></div>
             </div>
 
@@ -511,6 +539,7 @@
                     <div class="source-badge" id="secondarySourceBadge">Verificando</div>
                 </div>
                 <div class="source-values" id="secondarySourceValues"></div>
+                <div class="source-meta" id="secondarySourceMeta"></div>
                 <div class="source-note" id="secondarySourceNote"></div>
             </div>
         </section>
@@ -724,8 +753,20 @@
             const primaryNote = buildPrimaryNote(primary);
             const secondaryNote = buildSecondaryNote(secondary);
 
-            renderSourcePanel('primary', primary.reading, primary.status, primaryNote);
-            renderSourcePanel('secondary', secondary.reading, secondary.status, secondaryNote);
+            renderSourcePanel('primary', primary.reading, primary.status, primaryNote, {
+                canal: primary.source === 'dropbox' ? 'Dropbox' : primary.thingspeak?.channel,
+                lectura: primary.reading?.created_at,
+                antiguedad: primary.source === 'dropbox'
+                    ? primary.dropbox?.age_minutes
+                    : primary.thingspeak?.age_minutes,
+                refresco: data.refresh_seconds
+            });
+            renderSourcePanel('secondary', secondary.reading, secondary.status, secondaryNote, {
+                canal: secondary.channel,
+                lectura: secondary.reading?.created_at,
+                antiguedad: secondary.age_minutes,
+                refresco: data.refresh_seconds
+            });
         }
 
         function buildPrimaryNote(source) {
@@ -752,10 +793,11 @@
             return 'Canal secundario sin lectura válida todavía.';
         }
 
-        function renderSourcePanel(prefix, reading, status, note) {
+        function renderSourcePanel(prefix, reading, status, note, meta = {}) {
             const values = document.getElementById(`${prefix}SourceValues`);
             const badge = document.getElementById(`${prefix}SourceBadge`);
             const noteEl = document.getElementById(`${prefix}SourceNote`);
+            const metaEl = document.getElementById(`${prefix}SourceMeta`);
 
             badge.className = `source-badge ${status || 'invalid'}`;
             badge.textContent = statusLabel(status);
@@ -774,6 +816,13 @@
                     <div class="value">${formatSourceValue(value)}<span class="unit">${unit}</span></div>
                 </div>
             `).join('');
+
+            metaEl.innerHTML = `
+                <div class="source-meta-item">Canal<strong>${meta.canal || 'N/A'}</strong></div>
+                <div class="source-meta-item">Última lectura<strong>${formatDateTime(meta.lectura)}</strong></div>
+                <div class="source-meta-item">Antigüedad<strong>${formatAge(meta.antiguedad)}</strong></div>
+                <div class="source-meta-item">Refresco<strong>${meta.refresco || 60}s</strong></div>
+            `;
         }
 
         function statusLabel(status) {
@@ -786,6 +835,21 @@
         function formatSourceValue(value) {
             if (value === null || value === undefined || Number.isNaN(Number(value))) return '--';
             return Number(value).toFixed(2);
+        }
+
+        function formatDateTime(value) {
+            if (!value) return 'N/A';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return String(value);
+            return date.toLocaleString();
+        }
+
+        function formatAge(minutes) {
+            if (typeof minutes !== 'number') return 'N/A';
+            if (minutes < 120) return `${Math.round(minutes)} min`;
+            const hours = minutes / 60;
+            if (hours < 72) return `${hours.toFixed(1)} h`;
+            return `${(hours / 24).toFixed(1)} días`;
         }
 
         async function updateHealth() {
@@ -1008,16 +1072,16 @@
             await updateTrafficLights();
             await updateLiveChannels();
             
-            // Actualizar cada 15 segundos
+            // Actualizar cada minuto
             setInterval(async () => {
                 await updatePredictions();
                 await updateAlarms();
                 await updateTrafficLights();
                 await updateLiveChannels();
-            }, 15000);
+            }, 60000);
             
-            // Actualizar health cada 30 segundos
-            setInterval(updateHealth, 30000);
+            // Actualizar health cada minuto
+            setInterval(updateHealth, 60000);
             
             console.log('✓ Dashboard iniciado correctamente');
         }

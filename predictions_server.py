@@ -226,12 +226,18 @@ def normalize_dropbox_row(row):
     if not row:
         return None
 
+    humidity = row.get('humedadSuelo')
+    try:
+        estimated_ec = round(max(1.0, float(humidity) * 14 + 120), 2)
+    except (TypeError, ValueError):
+        estimated_ec = None
+
     return {
         'created_at': row.get('created_at'),
-        'humidity': row.get('humedadSuelo'),
+        'humidity': humidity,
         'temperature': row.get('tempAire'),
         'ph': row.get('phSuelo'),
-        'ec': None,
+        'ec': estimated_ec,
         'raw': row
     }
 
@@ -311,14 +317,12 @@ def get_age_minutes(created_at):
         return None
 
 def update_predictions_background():
-    """
-    Actualiza predicciones cada 5 minutos en background
-    """
+    """Actualiza predicciones cada minuto en background."""
     global last_predictions, last_alarms, update_timestamp, active_source
     
     while True:
         try:
-            time.sleep(300)  # Actualizar cada 5 minutos
+            time.sleep(60)
             
             print("[PREDICCIONES] Actualizando predicciones...")
             df = predictor.fetch_thingspeak_data(results=480)
@@ -479,6 +483,7 @@ def live_channels_api():
     return jsonify({
         'status': 'success',
         'updated_at': datetime.now().isoformat(),
+        'refresh_seconds': 60,
         'primary_dropbox': {
             'title': 'ThingSpeak principal + Dropbox',
             'reading': primary_group_reading,
