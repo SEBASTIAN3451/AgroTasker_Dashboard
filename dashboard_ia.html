@@ -300,6 +300,41 @@
             margin-top: 3px;
         }
 
+        .source-breakdown {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .source-breakdown-item {
+            border: 1px solid #edf1f3;
+            background: #fbfcfd;
+            border-radius: 6px;
+            padding: 9px;
+            font-size: 11px;
+            color: #607780;
+        }
+
+        .source-breakdown-item strong {
+            display: block;
+            color: var(--dark);
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .source-breakdown-item.ok {
+            border-left: 4px solid #2ecc71;
+        }
+
+        .source-breakdown-item.warn {
+            border-left: 4px solid #f39c12;
+        }
+
+        .source-breakdown-item.bad {
+            border-left: 4px solid #e74c3c;
+        }
+
         .panel-icon {
             font-size: 24px;
         }
@@ -645,6 +680,7 @@
                 </div>
                 <div class="source-values" id="primarySourceValues"></div>
                 <div class="source-meta" id="primarySourceMeta"></div>
+                <div class="source-breakdown" id="primarySourceBreakdown"></div>
                 <div class="source-note" id="primarySourceNote"></div>
             </div>
 
@@ -914,6 +950,7 @@
                     : primary.thingspeak?.age_minutes,
                 refresco: data.refresh_seconds
             });
+            renderPrimaryBreakdown(primary);
             renderSourcePanel('secondary', secondary.reading, secondary.status, secondaryNote, {
                 canal: secondary.channel,
                 lectura: secondary.reading?.created_at,
@@ -949,8 +986,8 @@
             secondaryPanel.classList.toggle('live-active', secondary.status === 'valid');
 
             if (primary.source === 'dropbox') {
-                primaryTitle.textContent = 'Fuente A: Dropbox activo (principal inválido)';
-                primarySubtitle.textContent = 'ThingSpeak principal responde, pero trae valores inválidos; por eso se muestra Dropbox.';
+                primaryTitle.textContent = 'Fuente A: ThingSpeak principal + respaldo Dropbox';
+                primarySubtitle.textContent = 'El principal está conectado pero sus valores son inválidos; por eso los datos visibles salen de Dropbox.';
             } else {
                 primaryTitle.textContent = 'Fuente A: ThingSpeak principal activo';
                 primarySubtitle.textContent = 'El canal principal está enviando lecturas válidas.';
@@ -959,6 +996,36 @@
             secondaryTitle.textContent = secondary.status === 'stored'
                 ? 'Fuente B: ThingSpeak secundario (última válida guardada)'
                 : 'Fuente B: ThingSpeak secundario en vivo';
+        }
+
+        function renderPrimaryBreakdown(primary) {
+            const container = document.getElementById('primarySourceBreakdown');
+            const ts = primary.thingspeak;
+            const dropbox = primary.dropbox;
+            const tsClass = ts?.is_valid ? 'ok' : 'bad';
+            const dropboxClass = primary.source === 'dropbox' ? 'warn' : 'ok';
+            const tsDetail = ts?.is_valid
+                ? `Canal ${ts.channel}, lectura válida.`
+                : `Canal ${ts?.channel || 'N/A'}, conectado pero inválido: ${formatRawFields(ts?.reading?.raw)}.`;
+            const dropboxDetail = dropbox?.is_valid
+                ? `${dropbox.records || 0} registros; usado ${primary.source === 'dropbox' ? 'como fuente visible' : 'como respaldo'}.`
+                : 'Sin respaldo disponible.';
+
+            container.innerHTML = `
+                <div class="source-breakdown-item ${tsClass}">
+                    <strong>ThingSpeak principal</strong>
+                    ${tsDetail}
+                </div>
+                <div class="source-breakdown-item ${dropboxClass}">
+                    <strong>Dropbox respaldo</strong>
+                    ${dropboxDetail}
+                </div>
+            `;
+        }
+
+        function formatRawFields(raw) {
+            if (!raw) return 'sin lectura';
+            return `H ${raw.field1 ?? '--'}, T ${raw.field2 ?? '--'}, pH ${raw.field3 ?? '--'}, EC ${raw.field4 ?? '--'}`;
         }
 
         function renderInsights(primary, secondary) {
