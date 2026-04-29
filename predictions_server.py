@@ -4,7 +4,7 @@ Integrado con Flask para servir predicciones vía API.
 Modelo: Transformer con Multi-Head Attention.
 """
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, make_response
 from flask_cors import CORS
 import json
 import os
@@ -386,12 +386,11 @@ def get_predictions_api():
 @app.route('/', methods=['GET'])
 def dashboard():
     """Sirve el dashboard IA desde el mismo servidor Flask."""
-    return send_from_directory(os.getcwd(), 'dashboard_ia.html')
-
-@app.route('/AgroTasker_IA_Transformer.zip', methods=['GET'])
-def download_ia_zip():
-    """Descarga el paquete ZIP del sistema IA."""
-    return send_from_directory(os.getcwd(), 'AgroTasker_IA_Transformer.zip', as_attachment=True)
+    response = make_response(send_from_directory(os.getcwd(), 'dashboard_ia.html'))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/api/alarms', methods=['GET'])
 def get_alarms_api():
