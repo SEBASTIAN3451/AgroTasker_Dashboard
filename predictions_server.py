@@ -1,14 +1,15 @@
 """
 Servidor de predicciones con alarmas
-Integrado con Flask para servir predicciones vía API
+Integrado con Flask para servir predicciones vía API.
+Modelo: Transformer con Multi-Head Attention.
 """
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import json
 import os
 from datetime import datetime
-from predictions_model import SensorPredictor, train_model, VARIABLES
+from predictions_model import TransformerPredictor, train_model, VARIABLES
 import threading
 import time
 
@@ -16,7 +17,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Estado global
-predictor = SensorPredictor()
+predictor = TransformerPredictor()
 ALARM_CONFIG = {
     'field1': {'min': 30, 'max': 90, 'early_min': 40, 'early_max': 80},  # Humedad
     'field2': {'min': 10, 'max': 35, 'early_min': 15, 'early_max': 30},   # Temperatura
@@ -122,10 +123,10 @@ def update_predictions_background():
                 last_predictions = predictor.predict_next(df)
                 last_alarms = generate_alarms(last_predictions)
                 update_timestamp = datetime.now().isoformat()
-                print(f"[PREDICCIONES] ✓ Predicciones actualizadas")
+                print("[PREDICCIONES] OK Predicciones actualizadas")
             
         except Exception as e:
-            print(f"[PREDICCIONES] ❌ Error actualizando: {e}")
+            print(f"[PREDICCIONES] ERROR actualizando: {e}")
 
 # Inicializar predicciones en startup
 def init_predictions():
@@ -139,19 +140,22 @@ def init_predictions():
         predictor.load_models()
         
         if predictor.models:
-            print(f"[STARTUP] ✓ {len(predictor.models)} modelos cargados")
+            print(f"[STARTUP] OK {len(predictor.models)} modelos cargados")
             df = predictor.fetch_thingspeak_data(results=480)
             
             if df is not None:
                 last_predictions = predictor.predict_next(df)
-                last_alarms = generate_alarms(last_predictions)
-                update_timestamp = datetime.now().isoformat()
-                print("[STARTUP] ✓ Predicciones iniciales generadas")
+                if last_predictions:
+                    last_alarms = generate_alarms(last_predictions)
+                    update_timestamp = datetime.now().isoformat()
+                    print("[STARTUP] OK Predicciones iniciales generadas")
+                else:
+                    print("[STARTUP] WARN Modelos cargados, pero no se generaron predicciones")
         else:
-            print("[STARTUP] ⚠️  No hay modelos. Ejecute: python predictions_model.py train")
+            print("[STARTUP] WARN No hay modelos. Ejecute: python predictions_model.py train")
     
     except Exception as e:
-        print(f"[STARTUP] ❌ Error inicializando: {e}")
+        print(f"[STARTUP] ERROR inicializando: {e}")
 
 # ============ RUTAS API ============
 
@@ -171,6 +175,11 @@ def get_predictions_api():
         'timestamp': update_timestamp,
         'next_update': None  # Cliente puede calcular
     })
+
+@app.route('/', methods=['GET'])
+def dashboard():
+    """Sirve el dashboard IA desde el mismo servidor Flask."""
+    return send_from_directory(os.getcwd(), 'dashboard_ia.html')
 
 @app.route('/api/alarms', methods=['GET'])
 def get_alarms_api():
@@ -322,10 +331,10 @@ if __name__ == '__main__':
     print("\n" + "="*60)
     print("SERVIDOR DE PREDICCIONES Y ALARMAS")
     print("="*60)
-    print("🚀 Iniciando en http://0.0.0.0:5000")
-    print("📊 Predicciones: http://localhost:5000/api/predictions")
-    print("🚨 Alarmas: http://localhost:5000/api/alarms")
-    print("🚦 Semáforo: http://localhost:5000/api/traffic-light")
+    print("Iniciando en http://0.0.0.0:5000")
+    print("Predicciones: http://localhost:5000/api/predictions")
+    print("Alarmas: http://localhost:5000/api/alarms")
+    print("Semaforo: http://localhost:5000/api/traffic-light")
     print("="*60 + "\n")
     
     app.run(host='0.0.0.0', port=5000, debug=False)

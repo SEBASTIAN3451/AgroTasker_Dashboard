@@ -7,7 +7,7 @@
 ## 📋 Resumen del Proyecto
 
 Sistema completo de monitoreo agrícola con:
-- ✅ **Predicciones con Redes Neuronales GRU** (alternativa ligera a LSTM)
+- ✅ **Predicciones con Redes Neuronales Transformer** (Multi-Head Attention)
 - ✅ **Semaforización** (indicadores rojo/amarillo/verde)
 - ✅ **Sistema de Alarmas** (tempranas y críticas)
 - ✅ **Dashboard interactivo** con gráficos de pronóstico
@@ -35,13 +35,15 @@ Sistema completo de monitoreo agrícola con:
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────┐
-│            MODELO GRU (TensorFlow/Keras)               │
+│       MODELO TRANSFORMER (TensorFlow/Keras)            │
 │                                                         │
-│  ┌─ GRU(64) ─ Dropout(0.2) ─ GRU(32) ─ Dropout(0.2)  │
-│  │                                                     │
-│  └─ Dense(16) ─ Dense(6) ─ OUTPUT [6 pasos ahead]    │
+│  Input → MultiHeadAttention(4 heads) → Dropout       │
+│       → LayerNorm → FeedForward → LayerNorm            │
+│  (x2 bloques de Attention)                             │
+│       → Flatten → Dense(64) → Dense(32) → Dense(6)    │
 │                                                         │
 │  Predicción: 24 últimos valores → 6 valores futuros   │
+│  Arquitectura: Transformer con Attention Mechanism    │
 │  Variables: Humedad, Temp, EC, pH                     │
 │  Entrenamiento: ~480 registros históricos (5 días)    │
 └────────────────────┬────────────────────────────────────┘
@@ -90,14 +92,15 @@ Abre en navegador: file:///c:/Users/SEBASTIAN/AgroTasker_Dashboard/dashboard_ia.
 
 ## 📊 Componentes Principales
 
-### 1. **predictions_model.py** - Modelo de Redes Neuronales
+### 1. **predictions_model.py** - Modelo de Redes Neuronales Transformer
 
 **Características:**
-- Arquitectura GRU (Gated Recurrent Unit) - 64 + 32 unidades
+- Arquitectura Transformer con Multi-Head Attention (4 heads)
+- Dos bloques de Self-Attention con Feed Forward Networks
 - Descarga automática de datos históricos de ThingSpeak
 - Normalización MinMax (0-1)
 - Predicción multi-paso (6 pasos = ~1.5 horas)
-- Early stopping para evitar overfitting
+- Early stopping y Learning Rate Reduction para optimización
 
 **Uso:**
 
@@ -108,16 +111,16 @@ python predictions_model.py train
 # Ver predicciones actuales
 python predictions_model.py
 
-# Guardar modelos en: ./models/gru_field1.h5, etc.
+# Guardar modelos en: ./models/transformer_field1.h5, etc.
 ```
 
 **Proceso de Entrenamiento:**
 1. Descarga últimos ~480 registros (5 días)
 2. Normaliza cada variable independientemente
 3. Crea secuencias de 24 pasos
-4. Entrena GRU con 50 épocas
+4. Entrena Transformer con 100 épocas (early stopping)
 5. Guarda 4 modelos (uno por variable)
-6. Estima tiempo: 2-5 minutos
+6. Estima tiempo: 3-7 minutos
 
 ### 2. **predictions_server.py** - API REST con Alarmas
 
@@ -269,37 +272,48 @@ ALARM_CONFIG = {
 
 ---
 
-## 🧠 Arquitectura Neural: GRU vs LSTM
+## 🧠 Arquitectura Neural: Transformer con Attention
 
-**¿Por qué GRU en lugar de LSTM?**
+**¿Por qué Transformer?**
 
-| Aspecto | GRU | LSTM |
-|--------|-----|------|
-| Complejidad | Simple | Compleja |
-| Parámetros | ~25% menos | Mayor |
-| Entrenamiento | Más rápido | Lento |
-| Memoria | Menor | Mayor |
-| Precisión | Similar | Similar |
-| Latencia | ⚡ Mejor | Peor |
+| Aspecto | Transformer | GRU | LSTM |
+|--------|-------------|-----|------|
+| Complejidad | Media | Simple | Compleja |
+| Paralelización | ⚡ Excelente | Limitada | Limitada |
+| Rendimiento | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| Precisión Series | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| Contexto Largo | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| Latencia | Baja | Muy Baja | Baja |
 
-**Estructura GRU Implementada:**
+**Estructura Transformer Implementada:**
 ```
 Entrada (24 valores históricos)
     ↓
-GRU(64) [Reset gate + Update gate]
+MultiHeadAttention(4 heads) [Self-Attention]
     ↓
-Dropout(0.2) [Regularización]
+Dropout(0.2) + LayerNormalization
     ↓
-GRU(32) [Compresión temporal]
+FeedForward Network (Dense layers)
     ↓
-Dropout(0.2)
+Dropout(0.2) + LayerNormalization
     ↓
-Dense(16) [Extracción características]
+MultiHeadAttention(4 heads) [Second Attention Block]
+    ↓
+Dropout(0.2) + LayerNormalization
+    ↓
+Flatten → Dense(64) → Dense(32) [Compresión]
     ↓
 Dense(6) [6 predicciones futuras]
     ↓
 Salida (Pronóstico 1.5h)
 ```
+
+**Ventajas del Transformer:**
+- Mecanismo de Attention captura dependencias a largo plazo
+- Procesamiento paralelo mucho más eficiente
+- Mejor generalización en series temporales
+- Escalable a más capas y heads
+- State-of-the-art en ML moderno
 
 **Variables Predichas:**
 - field1: Humedad Suelo (%)
@@ -346,26 +360,26 @@ python predictions_model.py train
 **Output esperado:**
 ```
 ==================================================
-ENTRENAMIENTO DE MODELO GRU
+ENTRENAMIENTO DE MODELO TRANSFORMER
 ==================================================
 ✓ Descargados 480 registros de ThingSpeak
 
-🔄 Entrenando modelos GRU...
+🔄 Entrenando modelos Transformer...
   📊 Humedad Suelo (%): entrenando con 450 secuencias...
-  ✓ Modelo guardado: ./models/gru_field1.h5
+  ✓ Modelo Transformer guardado: ./models/transformer_field1.h5
   [similares para field2, field3, field4]
 
-✓ Entrenamiento completado exitosamente
+✓ Entrenamiento Transformer completado exitosamente
 ```
 
 **Archivos generados:**
 ```
 models/
-  ├── gru_field1.h5      # Modelo humedad
-  ├── gru_field2.h5      # Modelo temperatura
-  ├── gru_field3.h5      # Modelo EC
-  ├── gru_field4.h5      # Modelo pH
-  └── metadata.json      # Metadatos entrenamiento
+  ├── transformer_field1.h5      # Modelo humedad (Transformer)
+  ├── transformer_field2.h5      # Modelo temperatura (Transformer)
+  ├── transformer_field3.h5      # Modelo EC (Transformer)
+  ├── transformer_field4.h5      # Modelo pH (Transformer)
+  └── metadata.json              # Metadatos entrenamiento
 ```
 
 ### 📍 PASO 4: Iniciar Servidor (2 min)
@@ -474,10 +488,10 @@ Estado: 🟢 Verde (dentro de rango 30-90%)
 - Normalización MinMax
 - Train/validation split (80/20)
 
-### 2. Redes Neuronales Recurrentes
-- GRU (Gated Recurrent Unit)
-- Reset y Update gates
-- Memoria a corto/largo plazo
+### 2. Redes Neuronales Transformer
+- Self-Attention Multi-Head
+- Mecanismos de Atención (4 cabezas)
+- Arquitectura Encoder-like con 2 bloques
 
 ### 3. Sistema de Alarmas
 - Umbrales dobles (crítico + temprano)
@@ -490,7 +504,7 @@ Estado: 🟢 Verde (dentro de rango 30-90%)
 - Documentación automática
 
 ### 5. Stack Tecnológico
-- Python + TensorFlow/Keras
+- Python + TensorFlow/Keras (Transformer)
 - Flask para API
 - HTML5 + Vanilla JS para frontend
 

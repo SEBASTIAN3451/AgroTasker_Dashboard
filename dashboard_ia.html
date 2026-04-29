@@ -355,7 +355,7 @@
         <!-- HEADER -->
         <header>
             <h1>🌾 AgroTasker - Monitoreo Inteligente con IA</h1>
-            <p>Sistema de predicciones con redes neuronales GRU y alarmas automáticas</p>
+            <p>Sistema de predicciones con redes neuronales Transformer y alarmas automáticas</p>
             
             <div class="status-bar">
                 <div class="status-item">
@@ -574,7 +574,7 @@
             
             if (data?.status === 'ok') {
                 const modelsText = data.models.length > 0 
-                    ? `${data.models.length} modelos GRU cargados`
+                    ? `${data.models.length} modelos Transformer cargados`
                     : 'Modelos no entrenados';
                 
                 document.getElementById('modelStatus').textContent = 

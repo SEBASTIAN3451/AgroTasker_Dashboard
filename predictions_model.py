@@ -1,6 +1,6 @@
 """
-Modelo de predicciones con GRU (Gated Recurrent Unit)
-Alternativa ligera a LSTM para predicción de variables agrícolas
+Modelo de predicciones con Transformer (Attention Mechanism)
+Arquitectura moderna con Multi-Head Attention para series temporales
 """
 
 import os
@@ -11,8 +11,11 @@ from datetime import datetime, timedelta
 import requests
 from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import GRU, Dense, Dropout
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import (
+    Input, Dense, Dropout, LayerNormalization, MultiHeadAttention,
+    Flatten
+)
 from tensorflow.keras.optimizers import Adam
 import warnings
 warnings.filterwarnings('ignore')
@@ -32,7 +35,7 @@ VARIABLES = {
     'field4': {'name': 'pH', 'min': 4, 'max': 9},
 }
 
-class SensorPredictor:
+class TransformerPredictor:
     def __init__(self):
         os.makedirs(MODEL_DIR, exist_ok=True)
         self.scalers = {}
@@ -42,7 +45,7 @@ class SensorPredictor:
     def fetch_thingspeak_data(self, results=480):
         """
         Descarga datos históricos de ThingSpeak
-        results=480 → aproximadamente 5 días (1 lectura cada 15 min)
+        results=480: aproximadamente 5 días (1 lectura cada 15 min)
         """
         url = f"https://api.thingspeak.com/channels/{THINGSPEAK_CHANNEL}/feeds.json"
         params = {
@@ -57,7 +60,7 @@ class SensorPredictor:
             data = response.json()
             
             if 'feeds' not in data or not data['feeds']:
-                print("❌ No data from ThingSpeak")
+                print("[ERROR] No data from ThingSpeak")
                 return None
             
             df = pd.DataFrame(data['feeds'])
@@ -69,16 +72,16 @@ class SensorPredictor:
             # Eliminar filas con NaN
             df = df.dropna(subset=list(VARIABLES.keys()))
             
-            print(f"✓ Descargados {len(df)} registros de ThingSpeak")
+            print(f"[OK] Descargados {len(df)} registros de ThingSpeak")
             return df.sort_values('created_at').reset_index(drop=True)
             
         except Exception as e:
-            print(f"❌ Error descargando datos: {e}")
+            print(f"[ERROR] Error descargando datos: {e}")
             return None
 
     def prepare_data(self, df):
         """
-        Prepara datos para el modelo GRU
+        Prepara datos para el modelo Transformer
         Normaliza y crea secuencias para entrenamiento
         """
         X_train_list = []
@@ -104,35 +107,74 @@ class SensorPredictor:
             
             if X:
                 X_train_list.append(np.array(X))
-                y_train_list.append(np.array(y))
+                y_train_list.append(np.array(y).reshape(len(y), PREDICTION_STEPS))
         
         return X_train_list, y_train_list
 
-    def build_gru_model(self, input_shape):
+    def build_transformer_model(self, input_shape):
         """
-        Construye modelo GRU (más ligero que LSTM)
+        Construye modelo Transformer con Multi-Head Attention
+        Arquitectura:
+          - Input: Secuencia temporal
+          - Multi-Head Attention (4 heads)
+          - Feed Forward (Dense layers)
+          - Output: Predicción multi-paso
         """
-        model = Sequential([
-            GRU(64, activation='relu', input_shape=input_shape, return_sequences=True),
-            Dropout(0.2),
-            GRU(32, activation='relu', return_sequences=False),
-            Dropout(0.2),
-            Dense(16, activation='relu'),
-            Dense(PREDICTION_STEPS)  # Predicción multi-paso
-        ])
         
+        inputs = Input(shape=input_shape)
+        
+        # Block 1: Multi-Head Attention
+        attention = MultiHeadAttention(
+            num_heads=4, 
+            key_dim=16,
+            attention_axes=1
+        )(inputs, inputs)
+        attention = Dropout(0.2)(attention)
+        
+        # Add & Norm
+        out1 = LayerNormalization(epsilon=1e-6)(inputs + attention)
+        
+        # Feed Forward Network
+        ff = Dense(32, activation='relu')(out1)
+        ff = Dropout(0.2)(ff)
+        ff = Dense(input_shape[-1])(ff)
+        ff = Dropout(0.2)(ff)
+        
+        # Add & Norm
+        out2 = LayerNormalization(epsilon=1e-6)(out1 + ff)
+        
+        # Block 2: Second Attention Layer
+        attention2 = MultiHeadAttention(
+            num_heads=4,
+            key_dim=16,
+            attention_axes=1
+        )(out2, out2)
+        attention2 = Dropout(0.2)(attention2)
+        
+        # Add & Norm
+        out3 = LayerNormalization(epsilon=1e-6)(out2 + attention2)
+        
+        # Output layers
+        flat = Flatten()(out3)
+        dense1 = Dense(64, activation='relu')(flat)
+        dense1 = Dropout(0.2)(dense1)
+        dense2 = Dense(32, activation='relu')(dense1)
+        outputs = Dense(PREDICTION_STEPS)(dense2)
+        
+        model = Model(inputs=inputs, outputs=outputs)
         model.compile(optimizer=Adam(learning_rate=0.001), loss='mse', metrics=['mae'])
+        
         return model
 
     def train(self, df):
         """
-        Entrena modelos GRU para cada variable
+        Entrena modelos Transformer para cada variable
         """
         if df is None or len(df) < SEQUENCE_LENGTH + PREDICTION_STEPS:
-            print("❌ Datos insuficientes para entrenar")
+            print("[ERROR] Datos insuficientes para entrenar")
             return False
         
-        print(f"\n🔄 Entrenando modelos GRU...")
+        print("\n[TRAIN] Entrenando modelos Transformer...")
         X_list, y_list = self.prepare_data(df)
         
         for idx, field in enumerate(VARIABLES.keys()):
@@ -142,26 +184,32 @@ class SensorPredictor:
             X, y = X_list[idx], y_list[idx]
             
             if len(X) == 0:
-                print(f"⚠️  {field}: Sin datos suficientes")
+                print(f"[WARN] {field}: Sin datos suficientes")
                 continue
             
-            print(f"  📊 {VARIABLES[field]['name']}: entrenando con {len(X)} secuencias...")
+            print(f"  [DATA] {VARIABLES[field]['name']}: entrenando con {len(X)} secuencias...")
             
-            # Construir y entrenar modelo
-            model = self.build_gru_model((X.shape[1], X.shape[2]))
+            # Construir y entrenar modelo Transformer
+            model = self.build_transformer_model((X.shape[1], X.shape[2]))
             
-            # Entrenar con early stopping
+            # Entrenar con early stopping y learning rate reduction
             history = model.fit(
                 X, y,
-                epochs=50,
+                epochs=100,
                 batch_size=32,
                 validation_split=0.2,
                 verbose=0,
                 callbacks=[
                     tf.keras.callbacks.EarlyStopping(
                         monitor='val_loss',
-                        patience=10,
+                        patience=15,
                         restore_best_weights=True
+                    ),
+                    tf.keras.callbacks.ReduceLROnPlateau(
+                        monitor='val_loss',
+                        factor=0.5,
+                        patience=5,
+                        min_lr=0.00001
                     )
                 ]
             )
@@ -169,12 +217,19 @@ class SensorPredictor:
             self.models[field] = model
             
             # Guardar modelo
-            model_path = os.path.join(MODEL_DIR, f'gru_{field}.h5')
+            model_path = os.path.join(MODEL_DIR, f'transformer_{field}.h5')
             model.save(model_path)
-            print(f"  ✓ Modelo guardado: {model_path}")
+            print(f"  [OK] Modelo Transformer guardado: {model_path}")
         
         self.last_training = datetime.now()
         self._save_metadata()
+        
+        # Guardar scalers
+        import pickle
+        scalers_path = os.path.join(MODEL_DIR, 'scalers.pkl')
+        with open(scalers_path, 'wb') as f:
+            pickle.dump(self.scalers, f)
+        print(f"[OK] Scalers guardados: {scalers_path}")
         return True
 
     def predict_next(self, df, steps=PREDICTION_STEPS):
@@ -190,13 +245,13 @@ class SensorPredictor:
             if field not in self.models:
                 continue
             
+            if field not in self.scalers:
+                continue
+
             # Obtener últimos SEQUENCE_LENGTH valores
             data = df[field].tail(SEQUENCE_LENGTH).values.reshape(-1, 1).astype(float)
             
-            if field in self.scalers:
-                scaled_data = self.scalers[field].transform(data)
-            else:
-                continue
+            scaled_data = self.scalers[field].transform(data)
             
             # Hacer predicción
             X_pred = np.expand_dims(scaled_data, axis=0)
@@ -205,49 +260,77 @@ class SensorPredictor:
             # Desnormalizar
             y_pred = self.scalers[field].inverse_transform(y_pred_scaled.reshape(-1, 1)).flatten()
             
+            forecast = [float(np.clip(v, VARIABLES[field]['min'], VARIABLES[field]['max'])) for v in y_pred[:steps]]
+
             predictions[field] = {
                 'field_name': VARIABLES[field]['name'],
                 'current': float(df[field].iloc[-1]),
-                'forecast': [max(0, float(v)) for v in y_pred],
+                'forecast': forecast,
                 'min_threshold': VARIABLES[field]['min'],
                 'max_threshold': VARIABLES[field]['max']
             }
-        
+
         return predictions
 
     def _save_metadata(self):
         """Guarda metadata del entrenamiento"""
         metadata = {
             'last_training': self.last_training.isoformat(),
+            'architecture': 'Transformer',
             'sequence_length': SEQUENCE_LENGTH,
             'prediction_steps': PREDICTION_STEPS,
-            'variables': list(VARIABLES.keys())
+            'variables': list(VARIABLES.keys()),
+            'attention_heads': 4,
+            'ff_dim': 32
         }
         
         with open(os.path.join(MODEL_DIR, 'metadata.json'), 'w') as f:
             json.dump(metadata, f, indent=2)
 
     def load_models(self):
-        """Carga modelos previamente entrenados"""
+        """Carga modelos previamente entrenados y scalers"""
+        import pickle
+        
+        # Cargar scalers
+        scalers_path = os.path.join(MODEL_DIR, 'scalers.pkl')
+        if os.path.exists(scalers_path):
+            try:
+                with open(scalers_path, 'rb') as f:
+                    self.scalers = pickle.load(f)
+                print(f"[OK] Scalers cargados: {len(self.scalers)} variables")
+            except Exception as e:
+                print(f"[ERROR] Error cargando scalers: {e}")
+        
+        # Cargar modelos
         for field in VARIABLES.keys():
-            model_path = os.path.join(MODEL_DIR, f'gru_{field}.h5')
+            model_path = os.path.join(MODEL_DIR, f'transformer_{field}.h5')
             if os.path.exists(model_path):
                 try:
                     self.models[field] = tf.keras.models.load_model(model_path)
-                    print(f"✓ Modelo cargado: {field}")
+                    print(f"[OK] Modelo Transformer cargado: {field}")
                 except Exception as e:
-                    print(f"❌ Error cargando modelo {field}: {e}")
+                    print(f"[ERROR] Error cargando modelo {field}: {e}")
+
+        metadata_path = os.path.join(MODEL_DIR, 'metadata.json')
+        if os.path.exists(metadata_path):
+            try:
+                with open(metadata_path, 'r') as f:
+                    metadata = json.load(f)
+                if metadata.get('last_training'):
+                    self.last_training = datetime.fromisoformat(metadata['last_training'])
+            except Exception as e:
+                print(f"[WARN] Error cargando metadata: {e}")
 
 # Función para uso directo
 def get_predictions():
     """
     Obtiene predicciones actuales
     """
-    predictor = SensorPredictor()
+    predictor = TransformerPredictor()
     predictor.load_models()
     
     if not predictor.models:
-        print("⚠️  Necesita entrenar primero con train_model()")
+        print("[WARN] Necesita entrenar primero con train_model()")
         return None
     
     df = predictor.fetch_thingspeak_data()
@@ -258,15 +341,15 @@ def get_predictions():
 
 def train_model():
     """
-    Entrena nuevo modelo con datos recientes
+    Entrena nuevo modelo Transformer con datos recientes
     """
-    predictor = SensorPredictor()
+    predictor = TransformerPredictor()
     df = predictor.fetch_thingspeak_data(results=480)  # Últimos ~5 días
     
     if df is not None:
         success = predictor.train(df)
         if success:
-            print("✓ Entrenamiento completado exitosamente")
+            print("[OK] Entrenamiento Transformer completado exitosamente")
             return predictor
     
     return None
@@ -276,15 +359,15 @@ if __name__ == "__main__":
     
     if len(sys.argv) > 1 and sys.argv[1] == 'train':
         print("=" * 50)
-        print("ENTRENAMIENTO DE MODELO GRU")
+        print("ENTRENAMIENTO DE MODELO TRANSFORMER")
         print("=" * 50)
         train_model()
     else:
         print("=" * 50)
-        print("PREDICCIONES ACTUALES")
+        print("PREDICCIONES ACTUALES (TRANSFORMER)")
         print("=" * 50)
         preds = get_predictions()
         if preds:
             print(json.dumps(preds, indent=2, ensure_ascii=False))
         else:
-            print("❌ No hay predicciones disponibles")
+            print("[ERROR] No hay predicciones disponibles")

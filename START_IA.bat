@@ -1,132 +1,121 @@
 @echo off
-REM ====================================================
-REM AGROTASKER - Script de Inicio Completo
-REM Configura predicciones, alarmas y dashboard
-REM ====================================================
-
+REM ============================================
+REM AgroTasker - Script de Arranque Automatico
+REM Sistema IA con Transformer
+REM ============================================
 setlocal enabledelayedexpansion
 
 echo.
 echo ====================================================
-echo  AGROTASKER - Sistema Completo de IA
+echo   AgroTasker - Sistema IA con Transformer
+echo   Predicciones + Semaforizacion + Alarmas
 echo ====================================================
 echo.
 
-REM Verificar si está en el directorio correcto
-if not exist "predictions_model.py" (
-    echo Error: Este script debe ejecutarse desde c:\Users\SEBASTIAN\AgroTasker_Dashboard
-    pause
-    exit /b 1
-)
+set "SCRIPT_DIR=%~dp0"
+cd /d "%SCRIPT_DIR%"
 
-REM Activar virtual environment si existe
-if exist "venv\Scripts\activate.bat" (
-    echo Activando entorno virtual...
-    call venv\Scripts\activate.bat
-)
+REM ============================================
+REM PASO 1: Verificar/Crear Virtual Environment
+REM ============================================
+echo [1/5] Verificando entorno virtual...
+set "VENV_DIR=venv"
+if exist ".venv\Scripts\activate.bat" set "VENV_DIR=.venv"
 
-REM Instalar dependencias
-echo.
-echo [1/4] Instalando dependencias...
-echo.
-pip install -q -r requirements.txt 2>nul
-if !ERRORLEVEL! neq 0 (
-    echo Error instalando dependencias
-    pause
-    exit /b 1
-)
-echo ✓ Dependencias instaladas
-
-REM Verificar si modelo existe
-echo.
-echo [2/4] Verificando modelos entrenados...
-echo.
-if exist "models\metadata.json" (
-    echo ✓ Modelos encontrados
-    set MODEL_STATUS=Usando modelos entrenados
-) else (
-    echo ⚠️  Modelos no encontrados
-    echo.
-    echo ¿Desea entrenar ahora? (S/N)
-    set /p TRAIN_CHOICE=
-    
-    if /i "!TRAIN_CHOICE!"=="S" (
-        echo.
-        echo Entrenando modelo GRU (esto puede tomar 2-5 minutos)...
-        echo.
-        python predictions_model.py train
-        if !ERRORLEVEL! neq 0 (
-            echo Error durante entrenamiento
-            pause
-            exit /b 1
-        )
-        echo ✓ Entrenamiento completado
-        set MODEL_STATUS=Modelos recién entrenados
-    ) else (
-        echo ⚠️  Usando datos demo (sin predicciones reales)
-        set MODEL_STATUS=Datos demo
+if not exist "%VENV_DIR%\Scripts\activate.bat" (
+    echo   Creando entorno virtual en %VENV_DIR%...
+    python -m venv "%VENV_DIR%"
+    if !errorlevel! neq 0 (
+        echo   Error creando entorno virtual. Asegurate de tener Python instalado.
+        pause
+        exit /b 1
     )
+) else (
+    echo   Entorno virtual encontrado: %VENV_DIR%
 )
 
-REM Instalar versión estable del servidor de predicciones si es necesario
-echo.
-echo [3/4] Iniciando servidor de predicciones...
-echo.
-echo Abriendo terminal para servidor en puerto 5000...
-
-REM Abrir el servidor en otra ventana
-start "Servidor de Predicciones" cmd /k "title Servidor de Predicciones & python predictions_server.py"
-
-timeout /t 3
-
-REM Abrir dashboard
-echo.
-echo [4/4] Abriendo dashboard en navegador...
-echo.
-
-REM Intentar abrir el dashboard
-if exist "dashboard_ia.html" (
-    start "" "file:///c:/Users/SEBASTIAN/AgroTasker_Dashboard/dashboard_ia.html"
-    echo ✓ Dashboard abierto
-) else (
-    echo Error: dashboard_ia.html no encontrado
+call "%VENV_DIR%\Scripts\activate.bat"
+if !errorlevel! neq 0 (
+    echo   Error activando entorno virtual.
     pause
     exit /b 1
 )
+echo   Entorno virtual activado.
+
+REM ============================================
+REM PASO 2: Instalar Dependencias
+REM ============================================
+echo.
+echo [2/5] Instalando dependencias...
+pip install -q -r requirements.txt
+if !errorlevel! neq 0 (
+    echo   Error instalando dependencias.
+    pause
+    exit /b 1
+)
+echo   Dependencias instaladas.
+
+REM ============================================
+REM PASO 3: Verificar/Entrenar Modelo
+REM ============================================
+echo.
+echo [3/5] Verificando modelos Transformer...
+
+if not exist "models\" mkdir models
+
+set "MODELS_OK=1"
+if not exist "models\transformer_field1.h5" set "MODELS_OK=0"
+if not exist "models\transformer_field2.h5" set "MODELS_OK=0"
+if not exist "models\transformer_field3.h5" set "MODELS_OK=0"
+if not exist "models\transformer_field4.h5" set "MODELS_OK=0"
+if not exist "models\scalers.pkl" set "MODELS_OK=0"
+
+if "%MODELS_OK%"=="0" (
+    echo   Modelos incompletos. Entrenando Transformer...
+    echo   Esto puede tomar 3-7 minutos.
+    echo.
+    python predictions_model.py train
+    if !errorlevel! neq 0 (
+        echo   Error durante el entrenamiento.
+        pause
+        exit /b 1
+    )
+    echo   Modelos Transformer entrenados.
+) else (
+    echo   Modelos Transformer encontrados.
+)
+
+REM ============================================
+REM PASO 4: Iniciar Servidor Flask
+REM ============================================
+echo.
+echo [4/5] Iniciando servidor Flask en puerto 5000...
+echo   El dashboard quedara disponible en http://localhost:5000
+echo.
+
+start "Servidor AgroTasker IA" cmd /k ""cd /d "%SCRIPT_DIR%" && call "%VENV_DIR%\Scripts\activate.bat" && python predictions_server.py""
+
+timeout /t 3 /nobreak
+
+REM ============================================
+REM PASO 5: Abrir Dashboard
+REM ============================================
+echo.
+echo [5/5] Abriendo dashboard...
+start "" "http://localhost:5000" 2>nul || (
+    echo   Abre manualmente en tu navegador:
+    echo   http://localhost:5000
+)
 
 echo.
 echo ====================================================
-echo  ✓ SISTEMA INICIADO CORRECTAMENTE
+echo   Sistema iniciado correctamente
 echo ====================================================
+echo   Dashboard:     http://localhost:5000
+echo   API Server:    http://localhost:5000/api
+echo   Predicciones:  http://localhost:5000/api/predictions
+echo   Alarmas:       http://localhost:5000/api/alarms
 echo.
-echo 📊 Dashboard: file:///c:/Users/SEBASTIAN/AgroTasker_Dashboard/dashboard_ia.html
-echo 🤖 Servidor IA: http://localhost:5000
-echo 📈 Predicciones: http://localhost:5000/api/predictions
-echo 🚨 Alarmas: http://localhost:5000/api/alarms
-echo 🚦 Semáforo: http://localhost:5000/api/traffic-light
+echo Para detenerlo, cierra la ventana del servidor o presiona Ctrl+C ahi.
 echo.
-echo Estado modelos: %MODEL_STATUS%
-echo.
-echo Presione cualquier tecla para continuar...
-pause
-
-echo.
-echo ====================================================
-echo  INFORMACIÓN DE CONTROL
-echo ====================================================
-echo.
-echo Para cerrar el servidor:
-echo   1. Cierre la ventana del Servidor de Predicciones
-echo   2. O presione Ctrl+C en esa ventana
-echo.
-echo Para entrenar nuevo modelo:
-echo   python predictions_model.py train
-echo.
-echo Para ver predicciones desde línea de comandos:
-echo   python predictions_model.py
-echo.
-echo Para verificar estado del servidor:
-echo   http://localhost:5000/api/health
-echo.
-echo Presione Ctrl+C para terminar este script
 pause

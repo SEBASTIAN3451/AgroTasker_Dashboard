@@ -1,5 +1,6 @@
 {
-  "last_training": "2026-04-28T17:14:22.209594",
+  "last_training": "2026-04-28T17:42:41.306215",
+  "architecture": "Transformer",
   "sequence_length": 24,
   "prediction_steps": 6,
   "variables": [
@@ -7,5 +8,7 @@
     "field2",
     "field3",
     "field4"
-  ]
+  ],
+  "attention_heads": 4,
+  "ff_dim": 32
 }
