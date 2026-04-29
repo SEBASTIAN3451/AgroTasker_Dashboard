@@ -231,6 +231,14 @@
             background: rgba(231, 76, 60, 0.12);
         }
 
+        .source-panel.fallback-active {
+            border-top-color: #f39c12;
+        }
+
+        .source-panel.live-active {
+            border-top-color: #2ecc71;
+        }
+
         .source-values {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -475,6 +483,53 @@
             margin-bottom: 4px;
         }
 
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .insight-card {
+            background: white;
+            border-radius: 8px;
+            padding: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 4px solid #dfe6e9;
+        }
+
+        .insight-card.ok {
+            border-left-color: #2ecc71;
+        }
+
+        .insight-card.warn {
+            border-left-color: #f39c12;
+        }
+
+        .insight-card.bad {
+            border-left-color: #e74c3c;
+        }
+
+        .insight-label {
+            color: var(--gray);
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .insight-value {
+            color: var(--dark);
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        .insight-note {
+            color: #6f828a;
+            font-size: 12px;
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
         /* ===== PREDICTIONS ===== */
         .prediction-item {
             background: var(--light);
@@ -546,7 +601,8 @@
             }
 
             .forecast-summary,
-            .explain-grid {
+            .explain-grid,
+            .insight-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -603,6 +659,21 @@
                 <div class="source-values" id="secondarySourceValues"></div>
                 <div class="source-meta" id="secondarySourceMeta"></div>
                 <div class="source-note" id="secondarySourceNote"></div>
+            </div>
+        </section>
+
+        <section class="insight-grid" id="insightGrid">
+            <div class="insight-card warn">
+                <div class="insight-label">Salud de fuentes</div>
+                <div class="insight-value">Verificando...</div>
+            </div>
+            <div class="insight-card warn">
+                <div class="insight-label">Cobertura de variables</div>
+                <div class="insight-value">Verificando...</div>
+            </div>
+            <div class="insight-card warn">
+                <div class="insight-label">Acción sugerida</div>
+                <div class="insight-value">Verificando...</div>
             </div>
         </section>
 
@@ -849,6 +920,8 @@
                 antiguedad: secondary.age_minutes,
                 refresco: data.refresh_seconds
             });
+            updateSourceTitles(primary, secondary);
+            renderInsights(primary, secondary);
         }
 
         function buildPrimaryNote(source) {
@@ -862,6 +935,77 @@
                 ? 'Mostrando respaldo Dropbox porque el principal llegó inválido.'
                 : 'Mostrando ThingSpeak principal.';
             return `${chosen} ${tsState}. ${dropboxState}.`;
+        }
+
+        function updateSourceTitles(primary, secondary) {
+            const primaryPanel = document.querySelector('.source-panel.primary');
+            const secondaryPanel = document.querySelector('.source-panel.secondary');
+            const primaryTitle = primaryPanel.querySelector('.source-title');
+            const primarySubtitle = document.getElementById('primarySourceSubtitle');
+            const secondaryTitle = secondaryPanel.querySelector('.source-title');
+
+            primaryPanel.classList.toggle('fallback-active', primary.source === 'dropbox');
+            primaryPanel.classList.toggle('live-active', primary.source === 'thingspeak');
+            secondaryPanel.classList.toggle('live-active', secondary.status === 'valid');
+
+            if (primary.source === 'dropbox') {
+                primaryTitle.textContent = 'Fuente A: Dropbox activo (principal inválido)';
+                primarySubtitle.textContent = 'ThingSpeak principal responde, pero trae valores inválidos; por eso se muestra Dropbox.';
+            } else {
+                primaryTitle.textContent = 'Fuente A: ThingSpeak principal activo';
+                primarySubtitle.textContent = 'El canal principal está enviando lecturas válidas.';
+            }
+
+            secondaryTitle.textContent = secondary.status === 'stored'
+                ? 'Fuente B: ThingSpeak secundario (última válida guardada)'
+                : 'Fuente B: ThingSpeak secundario en vivo';
+        }
+
+        function renderInsights(primary, secondary) {
+            const grid = document.getElementById('insightGrid');
+            const primaryOk = primary.source === 'thingspeak';
+            const secondaryOk = secondary.status === 'valid';
+            const fallbackOk = primary.source === 'dropbox';
+            const variableCount = countAvailableValues(primary.reading) + countAvailableValues(secondary.reading);
+
+            const healthClass = secondaryOk && (primaryOk || fallbackOk) ? 'ok' : 'warn';
+            const healthText = primaryOk
+                ? 'Principal y secundario operativos'
+                : 'Principal inválido, respaldo Dropbox activo';
+            const healthNote = secondaryOk
+                ? 'El canal secundario está aportando lecturas válidas.'
+                : 'El secundario no tiene lectura nueva válida; se usa la última guardada.';
+
+            const coverageClass = variableCount >= 7 ? 'ok' : 'warn';
+            const actionText = primaryOk ? 'Continuar monitoreo' : 'Revisar sensor principal';
+            const actionNote = primaryOk
+                ? 'Las fuentes principales están dentro del flujo normal.'
+                : 'ThingSpeak principal está llegando con 0/-1; revisar escritura de sensores o API key.';
+
+            grid.innerHTML = `
+                <div class="insight-card ${healthClass}">
+                    <div class="insight-label">Salud de fuentes</div>
+                    <div class="insight-value">${healthText}</div>
+                    <div class="insight-note">${healthNote}</div>
+                </div>
+                <div class="insight-card ${coverageClass}">
+                    <div class="insight-label">Cobertura de variables</div>
+                    <div class="insight-value">${variableCount}/8 datos visibles</div>
+                    <div class="insight-note">Humedad, temperatura, pH y EC para cada bloque de fuente.</div>
+                </div>
+                <div class="insight-card ${primaryOk ? 'ok' : 'warn'}">
+                    <div class="insight-label">Acción sugerida</div>
+                    <div class="insight-value">${actionText}</div>
+                    <div class="insight-note">${actionNote}</div>
+                </div>
+            `;
+        }
+
+        function countAvailableValues(reading) {
+            if (!reading) return 0;
+            return ['humidity', 'temperature', 'ph', 'ec']
+                .filter(key => reading[key] !== null && reading[key] !== undefined && !Number.isNaN(Number(reading[key])))
+                .length;
         }
 
         function buildSecondaryNote(source) {
