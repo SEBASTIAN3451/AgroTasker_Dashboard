@@ -71,6 +71,12 @@
             font-size: 12px;
         }
 
+        .status-item a {
+            color: var(--dark);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
         .status-dot {
             width: 10px;
             height: 10px;
@@ -154,6 +160,111 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .source-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--secondary);
+        }
+
+        .source-panel.primary {
+            border-top-color: #16a085;
+        }
+
+        .source-panel.secondary {
+            border-top-color: #2980b9;
+        }
+
+        .source-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .source-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .source-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .source-badge {
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--light);
+            white-space: nowrap;
+        }
+
+        .source-badge.valid {
+            color: #0b7a3b;
+            background: rgba(46, 204, 113, 0.14);
+        }
+
+        .source-badge.stored,
+        .source-badge.fallback_dropbox {
+            color: #a16400;
+            background: rgba(243, 156, 18, 0.16);
+        }
+
+        .source-badge.invalid {
+            color: #b03a2e;
+            background: rgba(231, 76, 60, 0.12);
+        }
+
+        .source-values {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .source-value {
+            background: #f6f9fa;
+            border-radius: 6px;
+            padding: 10px;
+            min-height: 72px;
+        }
+
+        .source-value .label {
+            color: #6f828a;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .source-value .value {
+            color: var(--dark);
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .source-value .unit {
+            color: var(--gray);
+            font-size: 11px;
+            margin-left: 2px;
+        }
+
+        .source-note {
+            color: #6f828a;
+            font-size: 12px;
+            margin-top: 10px;
+            line-height: 1.45;
         }
 
         .panel-icon {
@@ -344,6 +455,14 @@
                 grid-template-columns: 1fr;
             }
 
+            .source-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .source-values {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .forecast-container {
                 height: 120px;
             }
@@ -373,8 +492,37 @@
                 <div class="status-item" id="dataSourceStatus">
                     Fuente: Verificando...
                 </div>
+                <div class="status-item">
+                    <a href="/AgroTasker_IA_Transformer.zip">Descargar ZIP</a>
+                </div>
             </div>
         </header>
+
+        <section class="source-grid">
+            <div class="source-panel primary">
+                <div class="source-head">
+                    <div>
+                        <div class="source-title">Principal + Dropbox</div>
+                        <div class="source-subtitle" id="primarySourceSubtitle">ThingSpeak principal con respaldo Dropbox</div>
+                    </div>
+                    <div class="source-badge" id="primarySourceBadge">Verificando</div>
+                </div>
+                <div class="source-values" id="primarySourceValues"></div>
+                <div class="source-note" id="primarySourceNote"></div>
+            </div>
+
+            <div class="source-panel secondary">
+                <div class="source-head">
+                    <div>
+                        <div class="source-title">Tu ThingSpeak secundario</div>
+                        <div class="source-subtitle" id="secondarySourceSubtitle">Se actualiza cuando llegan lecturas; si no, conserva la última válida</div>
+                    </div>
+                    <div class="source-badge" id="secondarySourceBadge">Verificando</div>
+                </div>
+                <div class="source-values" id="secondarySourceValues"></div>
+                <div class="source-note" id="secondarySourceNote"></div>
+            </div>
+        </section>
 
         <!-- ALARMAS -->
         <div class="panel" style="background: #fff3cd; border: 2px solid #ffc107;">
@@ -570,6 +718,83 @@
                 currentLights = DEMO_DATA.lights;
                 updateMainCards(DEMO_DATA.lights);
             }
+        }
+
+        async function updateLiveChannels() {
+            const data = await fetchData('/live-channels');
+            if (data?.status !== 'success') {
+                renderSourcePanel('primary', null, 'invalid', 'Sin conexión con fuentes');
+                renderSourcePanel('secondary', null, 'invalid', 'Sin conexión con fuentes');
+                return;
+            }
+
+            const primary = data.primary_dropbox;
+            const secondary = data.secondary;
+            const primaryNote = buildPrimaryNote(primary);
+            const secondaryNote = buildSecondaryNote(secondary);
+
+            renderSourcePanel('primary', primary.reading, primary.status, primaryNote);
+            renderSourcePanel('secondary', secondary.reading, secondary.status, secondaryNote);
+        }
+
+        function buildPrimaryNote(source) {
+            const ts = source.thingspeak;
+            const dropbox = source.dropbox;
+            const tsState = ts?.is_valid ? 'ThingSpeak principal válido' : 'ThingSpeak principal sin lectura válida';
+            const dropboxState = dropbox?.is_valid
+                ? `Dropbox disponible (${dropbox.records || 0} registros)`
+                : 'Dropbox sin datos';
+            const chosen = source.source === 'dropbox'
+                ? 'Mostrando respaldo Dropbox porque el principal llegó inválido.'
+                : 'Mostrando ThingSpeak principal.';
+            return `${chosen} ${tsState}. ${dropboxState}.`;
+        }
+
+        function buildSecondaryNote(source) {
+            if (!source) return 'Sin información del canal secundario.';
+            if (source.status === 'stored') {
+                return 'No llegó una lectura nueva válida; se conserva la última lectura válida guardada.';
+            }
+            if (source.status === 'valid') {
+                return `Última lectura válida del canal ${source.channel}.`;
+            }
+            return 'Canal secundario sin lectura válida todavía.';
+        }
+
+        function renderSourcePanel(prefix, reading, status, note) {
+            const values = document.getElementById(`${prefix}SourceValues`);
+            const badge = document.getElementById(`${prefix}SourceBadge`);
+            const noteEl = document.getElementById(`${prefix}SourceNote`);
+
+            badge.className = `source-badge ${status || 'invalid'}`;
+            badge.textContent = statusLabel(status);
+            noteEl.textContent = note || '';
+
+            const items = [
+                ['Humedad', reading?.humidity, '%'],
+                ['Temperatura', reading?.temperature, '°C'],
+                ['pH', reading?.ph, ''],
+                ['EC', reading?.ec, 'uS/cm']
+            ];
+
+            values.innerHTML = items.map(([label, value, unit]) => `
+                <div class="source-value">
+                    <div class="label">${label}</div>
+                    <div class="value">${formatSourceValue(value)}<span class="unit">${unit}</span></div>
+                </div>
+            `).join('');
+        }
+
+        function statusLabel(status) {
+            if (status === 'valid') return 'Actualizado';
+            if (status === 'stored') return 'Guardado';
+            if (status === 'fallback_dropbox') return 'Dropbox';
+            return 'Sin dato válido';
+        }
+
+        function formatSourceValue(value) {
+            if (value === null || value === undefined || Number.isNaN(Number(value))) return '--';
+            return Number(value).toFixed(2);
         }
 
         async function updateHealth() {
@@ -790,12 +1015,14 @@
             await updatePredictions();
             await updateAlarms();
             await updateTrafficLights();
+            await updateLiveChannels();
             
             // Actualizar cada 15 segundos
             setInterval(async () => {
                 await updatePredictions();
                 await updateAlarms();
                 await updateTrafficLights();
+                await updateLiveChannels();
             }, 15000);
             
             // Actualizar health cada 30 segundos

@@ -39,6 +39,7 @@ last_predictions = None
 last_alarms = None
 update_timestamp = None
 active_source = None
+CACHE_FILE = os.path.join('models', 'live_sources_cache.json')
 
 DATA_SOURCES = [
     {
@@ -201,6 +202,84 @@ def fetch_dropbox_snapshot():
             'error': str(exc)
         }
 
+def normalize_soil_feed(feed):
+    """Convierte field1-field4 a nombres de lectura usados por la UI."""
+    if not feed:
+        return None
+
+    def as_float(value):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    return {
+        'created_at': feed.get('created_at'),
+        'humidity': as_float(feed.get('field1')),
+        'temperature': as_float(feed.get('field2')),
+        'ph': as_float(feed.get('field3')),
+        'ec': as_float(feed.get('field4')),
+        'raw': feed
+    }
+
+def normalize_dropbox_row(row):
+    if not row:
+        return None
+
+    return {
+        'created_at': row.get('created_at'),
+        'humidity': row.get('humedadSuelo'),
+        'temperature': row.get('tempAire'),
+        'ph': row.get('phSuelo'),
+        'ec': None,
+        'raw': row
+    }
+
+def load_live_cache():
+    try:
+        if os.path.exists(CACHE_FILE):
+            with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+def save_live_cache(cache):
+    try:
+        os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
+        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cache, f, indent=2, ensure_ascii=False)
+    except Exception as exc:
+        print(f"[WARN] No se pudo guardar cache de fuentes: {exc}")
+
+def source_payload(snapshot, cache_key=None):
+    reading = normalize_soil_feed(snapshot.get('latest'))
+    payload = {
+        'id': snapshot.get('id'),
+        'name': snapshot.get('name'),
+        'channel': snapshot.get('channel'),
+        'is_valid': snapshot.get('is_valid', False),
+        'age_minutes': snapshot.get('age_minutes'),
+        'reading': reading,
+        'stored': False,
+        'status': 'valid' if snapshot.get('is_valid') else 'invalid'
+    }
+
+    cache = load_live_cache()
+    if snapshot.get('is_valid') and reading and cache_key:
+        cache[cache_key] = {
+            'reading': reading,
+            'saved_at': datetime.now().isoformat(),
+            'age_minutes': snapshot.get('age_minutes')
+        }
+        save_live_cache(cache)
+    elif cache_key and cache.get(cache_key):
+        payload['reading'] = cache[cache_key].get('reading')
+        payload['stored'] = True
+        payload['status'] = 'stored'
+
+    return payload
+
 def is_valid_feed(feed):
     if not feed:
         return False
@@ -309,6 +388,11 @@ def dashboard():
     """Sirve el dashboard IA desde el mismo servidor Flask."""
     return send_from_directory(os.getcwd(), 'dashboard_ia.html')
 
+@app.route('/AgroTasker_IA_Transformer.zip', methods=['GET'])
+def download_ia_zip():
+    """Descarga el paquete ZIP del sistema IA."""
+    return send_from_directory(os.getcwd(), 'AgroTasker_IA_Transformer.zip', as_attachment=True)
+
 @app.route('/api/alarms', methods=['GET'])
 def get_alarms_api():
     """GET /api/alarms - Obtiene alarmas actuales"""
@@ -371,6 +455,48 @@ def data_sources_api():
         'active_source': active_source,
         'sources': sources,
         'timestamp': datetime.now().isoformat()
+    })
+
+@app.route('/api/live-channels', methods=['GET'])
+def live_channels_api():
+    """GET /api/live-channels - Muestra principal+Dropbox y secundario por separado."""
+    primary_snapshot = fetch_source_snapshot(DATA_SOURCES[0])
+    secondary_snapshot = fetch_source_snapshot(DATA_SOURCES[1])
+    dropbox_snapshot = fetch_dropbox_snapshot()
+
+    primary = source_payload(primary_snapshot, 'primary')
+    secondary = source_payload(secondary_snapshot, 'secondary')
+
+    dropbox_reading = normalize_dropbox_row(dropbox_snapshot.get('latest'))
+    primary_group_reading = primary.get('reading')
+    primary_group_source = 'thingspeak'
+    primary_group_status = primary.get('status')
+
+    if not primary_snapshot.get('is_valid') and dropbox_reading:
+        primary_group_reading = dropbox_reading
+        primary_group_source = 'dropbox'
+        primary_group_status = 'fallback_dropbox'
+
+    return jsonify({
+        'status': 'success',
+        'updated_at': datetime.now().isoformat(),
+        'primary_dropbox': {
+            'title': 'ThingSpeak principal + Dropbox',
+            'reading': primary_group_reading,
+            'source': primary_group_source,
+            'status': primary_group_status,
+            'thingspeak': primary,
+            'dropbox': {
+                'id': 'dropbox',
+                'name': 'Dropbox historico',
+                'is_valid': dropbox_snapshot.get('is_valid', False),
+                'records': dropbox_snapshot.get('records', 0),
+                'age_minutes': dropbox_snapshot.get('age_minutes'),
+                'reading': dropbox_reading,
+                'status': 'valid' if dropbox_snapshot.get('is_valid') else 'invalid'
+            }
+        },
+        'secondary': secondary
     })
 
 @app.route('/api/train', methods=['POST'])
