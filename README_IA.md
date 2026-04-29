@@ -1,71 +1,71 @@
-# 🌾 AgroTasker - Sistema de IA con Predicciones Neuronales
+﻿# ðŸŒ¾ AgroTasker - Sistema de IA con Predicciones Neuronales
 
 **Profesor:** [Nombre del profesor]  
 **Estudiante:** [Tu nombre]  
 **Fecha:** Abril 2026  
 
-## 📋 Resumen del Proyecto
+## ðŸ“‹ Resumen del Proyecto
 
-Sistema completo de monitoreo agrícola con:
-- ✅ **Predicciones con Redes Neuronales Transformer** (Multi-Head Attention)
-- ✅ **Semaforización** (indicadores rojo/amarillo/verde)
-- ✅ **Sistema de Alarmas** (tempranas y críticas)
-- ✅ **Dashboard interactivo** con gráficos de pronóstico
-- ✅ **API REST** para integración
-
----
-
-## 🏗️ Arquitectura del Sistema
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    DASHBOARD HTML                       │
-│  (Semaforización + Alarmas + Predicciones Visuales)    │
-└────────────────────┬────────────────────────────────────┘
-                     │ HTTP Requests
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│          SERVIDOR DE PREDICCIONES (Flask)              │
-│              Puerto: 5000                               │
-│  /api/predictions  - Predicciones actuales              │
-│  /api/alarms      - Alarmas del sistema                 │
-│  /api/traffic-light - Estado de semáforos              │
-│  /api/health      - Estado del servidor                 │
-└────────────────────┬────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│       MODELO TRANSFORMER (TensorFlow/Keras)            │
-│                                                         │
-│  Input → MultiHeadAttention(4 heads) → Dropout       │
-│       → LayerNorm → FeedForward → LayerNorm            │
-│  (x2 bloques de Attention)                             │
-│       → Flatten → Dense(64) → Dense(32) → Dense(6)    │
-│                                                         │
-│  Predicción: 24 últimos valores → 6 valores futuros   │
-│  Arquitectura: Transformer con Attention Mechanism    │
-│  Variables: Humedad, Temp, EC, pH                     │
-│  Entrenamiento: ~480 registros históricos (5 días)    │
-└────────────────────┬────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│            DATOS DE THINGSPEAK                         │
-│                                                         │
-│  Canal Principal (2791076):                            │
-│    • field1: Humedad Suelo (%)                         │
-│    • field2: Temperatura (°C)                          │
-│    • field3: EC (uS/cm)                                │
-│    • field4: pH                                        │
-│    • field5-7: NPK (N, P, K)                           │
-│                                                         │
-│  Frecuencia: 1 lectura cada 15 minutos                 │
-└─────────────────────────────────────────────────────────┘
-```
+Sistema completo de monitoreo agrÃ­cola con:
+- âœ… **Predicciones con Redes Neuronales Transformer** (Multi-Head Attention)
+- âœ… **SemaforizaciÃ³n** (indicadores rojo/amarillo/verde)
+- âœ… **Sistema de Alarmas** (tempranas y crÃ­ticas)
+- âœ… **Dashboard interactivo** con grÃ¡ficos de pronÃ³stico
+- âœ… **API REST** para integraciÃ³n
 
 ---
 
-## 🚀 Inicio Rápido (3 Pasos)
+## ðŸ—ï¸ Arquitectura del Sistema
+
+```
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    DASHBOARD HTML                       â”‚
+â”‚  (SemaforizaciÃ³n + Alarmas + Predicciones Visuales)    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                     â”‚ HTTP Requests
+                     â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚          SERVIDOR DE PREDICCIONES (Flask)              â”‚
+â”‚              Puerto: 5000                               â”‚
+â”‚  /api/predictions  - Predicciones actuales              â”‚
+â”‚  /api/alarms      - Alarmas del sistema                 â”‚
+â”‚  /api/traffic-light - Estado de semÃ¡foros              â”‚
+â”‚  /api/health      - Estado del servidor                 â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                     â”‚
+                     â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚       MODELO TRANSFORMER (TensorFlow/Keras)            â”‚
+â”‚                                                         â”‚
+â”‚  Input â†’ MultiHeadAttention(4 heads) â†’ Dropout       â”‚
+â”‚       â†’ LayerNorm â†’ FeedForward â†’ LayerNorm            â”‚
+â”‚  (x2 bloques de Attention)                             â”‚
+â”‚       â†’ Flatten â†’ Dense(64) â†’ Dense(32) â†’ Dense(6)    â”‚
+â”‚                                                         â”‚
+â”‚  PredicciÃ³n: 24 Ãºltimos valores â†’ 6 valores futuros   â”‚
+â”‚  Arquitectura: Transformer con Attention Mechanism    â”‚
+â”‚  Variables: Humedad, Temp, EC, pH                     â”‚
+â”‚  Entrenamiento: ~480 registros histÃ³ricos (5 dÃ­as)    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                     â”‚
+                     â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚            DATOS DE THINGSPEAK                         â”‚
+â”‚                                                         â”‚
+â”‚  Canal Principal (2791076):                            â”‚
+â”‚    â€¢ field1: Humedad Suelo (%)                         â”‚
+â”‚    â€¢ field2: Temperatura (Â°C)                          â”‚
+â”‚    â€¢ field3: EC (uS/cm)                                â”‚
+â”‚    â€¢ field4: pH                                        â”‚
+â”‚    â€¢ field5-7: NPK (N, P, K)                           â”‚
+â”‚                                                         â”‚
+â”‚  Frecuencia: 1 lectura cada 15 minutos                 â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+```
+
+---
+
+## ðŸš€ Inicio RÃ¡pido (3 Pasos)
 
 ### Paso 1: Abrir Terminal y Navegar
 ```bash
@@ -77,11 +77,11 @@ cd C:\Users\SEBASTIAN\AgroTasker_Dashboard
 START_IA.bat
 ```
 
-Este script automáticamente:
-1. ✓ Instala dependencias
-2. ✓ Verifica/entrena modelo
-3. ✓ Inicia servidor predicciones
-4. ✓ Abre dashboard en navegador
+Este script automÃ¡ticamente:
+1. âœ“ Instala dependencias
+2. âœ“ Verifica/entrena modelo
+3. âœ“ Inicia servidor predicciones
+4. âœ“ Abre dashboard en navegador
 
 ### Paso 3: Ver Dashboard
 ```
@@ -90,17 +90,17 @@ Abre en navegador: file:///c:/Users/SEBASTIAN/AgroTasker_Dashboard/dashboard_ia.
 
 ---
 
-## 📊 Componentes Principales
+## ðŸ“Š Componentes Principales
 
 ### 1. **predictions_model.py** - Modelo de Redes Neuronales Transformer
 
-**Características:**
+**CaracterÃ­sticas:**
 - Arquitectura Transformer con Multi-Head Attention (4 heads)
 - Dos bloques de Self-Attention con Feed Forward Networks
-- Descarga automática de datos históricos de ThingSpeak
-- Normalización MinMax (0-1)
-- Predicción multi-paso (6 pasos = ~1.5 horas)
-- Early stopping y Learning Rate Reduction para optimización
+- Descarga automÃ¡tica de datos histÃ³ricos de ThingSpeak
+- NormalizaciÃ³n MinMax (0-1)
+- PredicciÃ³n multi-paso (6 pasos = ~1.5 horas)
+- Early stopping y Learning Rate Reduction para optimizaciÃ³n
 
 **Uso:**
 
@@ -115,10 +115,10 @@ python predictions_model.py
 ```
 
 **Proceso de Entrenamiento:**
-1. Descarga últimos ~480 registros (5 días)
+1. Descarga Ãºltimos ~480 registros (5 dÃ­as)
 2. Normaliza cada variable independientemente
 3. Crea secuencias de 24 pasos
-4. Entrena Transformer con 100 épocas (early stopping)
+4. Entrena Transformer con 100 Ã©pocas (early stopping)
 5. Guarda 4 modelos (uno por variable)
 6. Estima tiempo: 3-7 minutos
 
@@ -129,7 +129,7 @@ python predictions_model.py
 **Endpoints Disponibles:**
 
 #### GET `/api/predictions`
-Obtiene predicciones actuales con pronóstico
+Obtiene predicciones actuales con pronÃ³stico
 ```json
 {
   "status": "success",
@@ -146,7 +146,7 @@ Obtiene predicciones actuales con pronóstico
 ```
 
 #### GET `/api/alarms`
-Obtiene estado de alarmas (críticas, tempranas, normales)
+Obtiene estado de alarmas (crÃ­ticas, tempranas, normales)
 ```json
 {
   "status": "success",
@@ -154,7 +154,7 @@ Obtiene estado de alarmas (críticas, tempranas, normales)
     "critical": [
       {
         "field": "field1",
-        "message": "⛔ CRÍTICO: Humedad fuera de rango",
+        "message": "â›” CRÃTICO: Humedad fuera de rango",
         "status": "red"
       }
     ],
@@ -165,7 +165,7 @@ Obtiene estado de alarmas (críticas, tempranas, normales)
 ```
 
 #### GET `/api/traffic-light`
-Estado de semáforo (rojo/amarillo/verde)
+Estado de semÃ¡foro (rojo/amarillo/verde)
 ```json
 {
   "lights": {
@@ -199,60 +199,60 @@ Obtiene/actualiza umbrales de alarmas
 
 ### 3. **dashboard_ia.html** - Panel de Control
 
-**Características Visuales:**
+**CaracterÃ­sticas Visuales:**
 
 1. **Encabezado**
-   - Título: "AgroTasker - Monitoreo Inteligente con IA"
+   - TÃ­tulo: "AgroTasker - Monitoreo Inteligente con IA"
    - Status en vivo de datos y predicciones
-   - Última actualización
+   - Ãšltima actualizaciÃ³n
 
 2. **Centro de Alertas** (Panel amarillo)
-   - Muestra alarmas críticas (🔴 rojo)
-   - Alertas tempranas (🟡 amarillo)
-   - Variables normales (✓ verde)
+   - Muestra alarmas crÃ­ticas (ðŸ”´ rojo)
+   - Alertas tempranas (ðŸŸ¡ amarillo)
+   - Variables normales (âœ“ verde)
 
 3. **Mediciones en Vivo**
    - Tarjetas con valor actual
-   - Indicador de semáforo (rojo/amarillo/verde)
-   - Color de fondo según estado
+   - Indicador de semÃ¡foro (rojo/amarillo/verde)
+   - Color de fondo segÃºn estado
 
 4. **Predicciones IA**
-   - Valor actual → Próximo valor
-   - Tendencia (📈 📉)
-   - Pronóstico de 3 pasos
+   - Valor actual â†’ PrÃ³ximo valor
+   - Tendencia (ðŸ“ˆ ðŸ“‰)
+   - PronÃ³stico de 3 pasos
 
-5. **Gráficos de Pronóstico**
-   - 6 barras para próximas 1.5 horas
+5. **GrÃ¡ficos de PronÃ³stico**
+   - 6 barras para prÃ³ximas 1.5 horas
    - Altura proporcional al valor predicho
    - Uno por variable
 
 ---
 
-## 🎨 Sistema de Semaforización
+## ðŸŽ¨ Sistema de SemaforizaciÃ³n
 
 Tres estados visuales:
 
-### 🟢 VERDE - Normal
+### ðŸŸ¢ VERDE - Normal
 - Valor dentro de rango seguro
 - No hay tendencias peligrosas
-- Acción: Monitoreo normal
+- AcciÃ³n: Monitoreo normal
 
-### 🟡 AMARILLO - Alerta Temprana
-- Valor en rango pero cerca de límite
-- Predicción muestra tendencia peligrosa
-- Acción: Revisar en 15-30 minutos
+### ðŸŸ¡ AMARILLO - Alerta Temprana
+- Valor en rango pero cerca de lÃ­mite
+- PredicciÃ³n muestra tendencia peligrosa
+- AcciÃ³n: Revisar en 15-30 minutos
 
-### 🔴 ROJO - Crítico
+### ðŸ”´ ROJO - CrÃ­tico
 - Valor fuera de rango seguro
-- Predicción predice superación de límites
-- Acción: Intervención inmediata
+- PredicciÃ³n predice superaciÃ³n de lÃ­mites
+- AcciÃ³n: IntervenciÃ³n inmediata
 
-**Configuración de Umbrales (en predictions_server.py):**
+**ConfiguraciÃ³n de Umbrales (en predictions_server.py):**
 
 ```python
 ALARM_CONFIG = {
     'field1': {                        # Humedad
-        'min': 30, 'max': 90,         # Rango crítico
+        'min': 30, 'max': 90,         # Rango crÃ­tico
         'early_min': 40, 'early_max': 80  # Rango amarillo
     },
     'field2': {                        # Temperatura
@@ -272,73 +272,73 @@ ALARM_CONFIG = {
 
 ---
 
-## 🧠 Arquitectura Neural: Transformer con Attention
+## ðŸ§  Arquitectura Neural: Transformer con Attention
 
-**¿Por qué Transformer?**
+**Â¿Por quÃ© Transformer?**
 
-| Aspecto | Transformer | GRU | LSTM |
-|--------|-------------|-----|------|
-| Complejidad | Media | Simple | Compleja |
-| Paralelización | ⚡ Excelente | Limitada | Limitada |
-| Rendimiento | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
-| Precisión Series | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
-| Contexto Largo | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
-| Latencia | Baja | Muy Baja | Baja |
+| Aspecto | ImplementaciÃ³n actual |
+|--------|------------------------|
+| Arquitectura | Transformer encoder-like |
+| AtenciÃ³n | Multi-Head Attention con 4 heads |
+| Entrada | 24 mediciones histÃ³ricas |
+| Salida | 6 predicciones futuras |
+| RegularizaciÃ³n | Dropout + LayerNormalization |
+| OptimizaciÃ³n | Early stopping + ReduceLROnPlateau |
 
 **Estructura Transformer Implementada:**
 ```
-Entrada (24 valores históricos)
-    ↓
+Entrada (24 valores histÃ³ricos)
+    â†“
 MultiHeadAttention(4 heads) [Self-Attention]
-    ↓
+    â†“
 Dropout(0.2) + LayerNormalization
-    ↓
+    â†“
 FeedForward Network (Dense layers)
-    ↓
+    â†“
 Dropout(0.2) + LayerNormalization
-    ↓
+    â†“
 MultiHeadAttention(4 heads) [Second Attention Block]
-    ↓
+    â†“
 Dropout(0.2) + LayerNormalization
-    ↓
-Flatten → Dense(64) → Dense(32) [Compresión]
-    ↓
+    â†“
+Flatten â†’ Dense(64) â†’ Dense(32) [CompresiÃ³n]
+    â†“
 Dense(6) [6 predicciones futuras]
-    ↓
-Salida (Pronóstico 1.5h)
+    â†“
+Salida (PronÃ³stico 1.5h)
 ```
 
 **Ventajas del Transformer:**
 - Mecanismo de Attention captura dependencias a largo plazo
-- Procesamiento paralelo mucho más eficiente
-- Mejor generalización en series temporales
-- Escalable a más capas y heads
+- Procesamiento paralelo mucho mÃ¡s eficiente
+- Mejor generalizaciÃ³n en series temporales
+- Escalable a mÃ¡s capas y heads
 - State-of-the-art en ML moderno
 
 **Variables Predichas:**
 - field1: Humedad Suelo (%)
-- field2: Temperatura (°C)
+- field2: Temperatura (Â°C)
 - field3: EC (uS/cm)
 - field4: pH
 
 ---
 
-## 📈 Instrucciones Paso a Paso para el Profesor
+## ðŸ“ˆ Instrucciones Paso a Paso para el Profesor
 
-### 📍 PASO 1: Entorno (5 min)
+### ðŸ“ PASO 1: Entorno (5 min)
 
 ```bash
-# Opción A: Con venv
+# OpciÃ³n A: Con venv
 cd C:\Users\SEBASTIAN\AgroTasker_Dashboard
 python -m venv venv
 venv\Scripts\activate.bat
 
-# Opción B: Con conda
+# OpciÃ³n B: Con conda
 conda create -n agrotasker python=3.11
 conda activate agrotasker
 ```
 
-### 📍 PASO 2: Instalar Dependencias (2 min)
+### ðŸ“ PASO 2: Instalar Dependencias (2 min)
 
 ```bash
 pip install -r requirements.txt
@@ -347,11 +347,11 @@ pip install -r requirements.txt
 **Paquetes principales:**
 - `tensorflow==2.14.0` - Redes neuronales
 - `pandas==2.0.3` - Manejo datos
-- `scikit-learn==1.3.0` - Normalización
+- `scikit-learn==1.3.0` - NormalizaciÃ³n
 - `flask==3.0.0` - API REST
-- `numpy==1.24.3` - Cálculos numéricos
+- `numpy==1.24.3` - CÃ¡lculos numÃ©ricos
 
-### 📍 PASO 3: Entrenar Modelo (3-5 min)
+### ðŸ“ PASO 3: Entrenar Modelo (3-5 min)
 
 ```bash
 python predictions_model.py train
@@ -362,27 +362,27 @@ python predictions_model.py train
 ==================================================
 ENTRENAMIENTO DE MODELO TRANSFORMER
 ==================================================
-✓ Descargados 480 registros de ThingSpeak
+âœ“ Descargados 480 registros de ThingSpeak
 
-🔄 Entrenando modelos Transformer...
-  📊 Humedad Suelo (%): entrenando con 450 secuencias...
-  ✓ Modelo Transformer guardado: ./models/transformer_field1.h5
+ðŸ”„ Entrenando modelos Transformer...
+  ðŸ“Š Humedad Suelo (%): entrenando con 450 secuencias...
+  âœ“ Modelo Transformer guardado: ./models/transformer_field1.h5
   [similares para field2, field3, field4]
 
-✓ Entrenamiento Transformer completado exitosamente
+âœ“ Entrenamiento Transformer completado exitosamente
 ```
 
 **Archivos generados:**
 ```
 models/
-  ├── transformer_field1.h5      # Modelo humedad (Transformer)
-  ├── transformer_field2.h5      # Modelo temperatura (Transformer)
-  ├── transformer_field3.h5      # Modelo EC (Transformer)
-  ├── transformer_field4.h5      # Modelo pH (Transformer)
-  └── metadata.json              # Metadatos entrenamiento
+  â”œâ”€â”€ transformer_field1.h5      # Modelo humedad (Transformer)
+  â”œâ”€â”€ transformer_field2.h5      # Modelo temperatura (Transformer)
+  â”œâ”€â”€ transformer_field3.h5      # Modelo EC (Transformer)
+  â”œâ”€â”€ transformer_field4.h5      # Modelo pH (Transformer)
+  â””â”€â”€ metadata.json              # Metadatos entrenamiento
 ```
 
-### 📍 PASO 4: Iniciar Servidor (2 min)
+### ðŸ“ PASO 4: Iniciar Servidor (2 min)
 
 ```bash
 python predictions_server.py
@@ -391,40 +391,40 @@ python predictions_server.py
 **Output esperado:**
 ```
 [STARTUP] Cargando modelos entrenados...
-[STARTUP] ✓ 4 modelos cargados
-[STARTUP] ✓ Predicciones iniciales generadas
+[STARTUP] âœ“ 4 modelos cargados
+[STARTUP] âœ“ Predicciones iniciales generadas
 
 ============================================================
 SERVIDOR DE PREDICCIONES Y ALARMAS
 ============================================================
-🚀 Iniciando en http://0.0.0.0:5000
-📊 Predicciones: http://localhost:5000/api/predictions
-🚨 Alarmas: http://localhost:5000/api/alarms
-🚦 Semáforo: http://localhost:5000/api/traffic-light
+ðŸš€ Iniciando en http://0.0.0.0:5000
+ðŸ“Š Predicciones: http://localhost:5000/api/predictions
+ðŸš¨ Alarmas: http://localhost:5000/api/alarms
+ðŸš¦ SemÃ¡foro: http://localhost:5000/api/traffic-light
 ============================================================
 ```
 
-### 📍 PASO 5: Abrir Dashboard (1 min)
+### ðŸ“ PASO 5: Abrir Dashboard (1 min)
 
 ```
-Opción A (con servidor):
+OpciÃ³n A (con servidor):
   http://localhost:5000/api - Ve a cualquier endpoint
 
-Opción B (solo HTML):
+OpciÃ³n B (solo HTML):
   file:///c:/Users/SEBASTIAN/AgroTasker_Dashboard/dashboard_ia.html
 ```
 
 ---
 
-## 🔧 Troubleshooting
+## ðŸ”§ Troubleshooting
 
-### ❌ Error: "ModuleNotFoundError: No module named 'tensorflow'"
+### âŒ Error: "ModuleNotFoundError: No module named 'tensorflow'"
 
 ```bash
 pip install tensorflow==2.14.0
 ```
 
-### ❌ Error: "Port 5000 already in use"
+### âŒ Error: "Port 5000 already in use"
 
 ```bash
 # Encontrar proceso usando puerto 5000
@@ -434,161 +434,162 @@ netstat -ano | findstr :5000
 taskkill /PID <PID> /F
 ```
 
-### ❌ Error: "No data from ThingSpeak"
+### âŒ Error: "No data from ThingSpeak"
 
-- Verificar conexión a internet
+- Verificar conexiÃ³n a internet
 - Verificar ID de canal (2791076)
-- Esperar 15 minutos (tiempo de actualización ThingSpeak)
+- Esperar 15 minutos (tiempo de actualizaciÃ³n ThingSpeak)
 
-### ❌ Dashboard no muestra predicciones
+### âŒ Dashboard no muestra predicciones
 
-- ¿Está corriendo predictions_server.py?
-- ¿Están los modelos entrenados? (`ls models/`)
+- Â¿EstÃ¡ corriendo predictions_server.py?
+- Â¿EstÃ¡n los modelos entrenados? (`ls models/`)
 - Verificar http://localhost:5000/api/health
 
 ---
 
-## 📊 Análisis de Resultados
+## ðŸ“Š AnÃ¡lisis de Resultados
 
-### Interpretación de Predicciones
+### InterpretaciÃ³n de Predicciones
 
 **Ejemplo: Humedad Suelo**
 ```
 Actual: 68.40%
-Pronóstico: [69.5, 70.2, 71.0, 70.8, 70.5, 69.8]
-Tendencia: 📈 Aumentando
-Estado: 🟢 Verde (dentro de rango 30-90%)
+PronÃ³stico: [69.5, 70.2, 71.0, 70.8, 70.5, 69.8]
+Tendencia: ðŸ“ˆ Aumentando
+Estado: ðŸŸ¢ Verde (dentro de rango 30-90%)
 ```
 
 **Significado:**
-- Humedad actual está en 68%
+- Humedad actual estÃ¡ en 68%
 - Modelo predice aumento progresivo hasta 71%
-- Permanecerá dentro de rango seguro
+- PermanecerÃ¡ dentro de rango seguro
 - No se requiere riego inmediato
 
-### Validación del Modelo
+### ValidaciÃ³n del Modelo
 
 **Indicadores de Calidad:**
 
-1. **MAE (Mean Absolute Error):** Error promedio en predicción
+1. **MAE (Mean Absolute Error):** Error promedio en predicciÃ³n
    - < 5%: Excelente
    - 5-10%: Bueno
    - > 10%: Revisar datos
 
-2. **Tendencia correcta:** ¿Predicciones siguen dirección correcta?
+2. **Tendencia correcta:** Â¿Predicciones siguen direcciÃ³n correcta?
 
-3. **Consistencia:** ¿Cambios graduales o saltos bruscos?
+3. **Consistencia:** Â¿Cambios graduales o saltos bruscos?
 
 ---
 
-## 🎓 Conceptos Educativos Presentados
+## ðŸŽ“ Conceptos Educativos Presentados
 
 ### 1. Machine Learning Series Temporal
 - Secuencias de 24 pasos
-- Normalización MinMax
+- NormalizaciÃ³n MinMax
 - Train/validation split (80/20)
 
 ### 2. Redes Neuronales Transformer
 - Self-Attention Multi-Head
-- Mecanismos de Atención (4 cabezas)
+- Mecanismos de AtenciÃ³n (4 cabezas)
 - Arquitectura Encoder-like con 2 bloques
 
 ### 3. Sistema de Alarmas
-- Umbrales dobles (crítico + temprano)
-- Análisis de tendencias
-- Lógica de semáforos
+- Umbrales dobles (crÃ­tico + temprano)
+- AnÃ¡lisis de tendencias
+- LÃ³gica de semÃ¡foros
 
 ### 4. API REST
 - Endpoints RESTful
-- CORS para integración frontend
-- Documentación automática
+- CORS para integraciÃ³n frontend
+- DocumentaciÃ³n automÃ¡tica
 
-### 5. Stack Tecnológico
+### 5. Stack TecnolÃ³gico
 - Python + TensorFlow/Keras (Transformer)
 - Flask para API
 - HTML5 + Vanilla JS para frontend
 
 ---
 
-## 📝 Notas para la Presentación
+## ðŸ“ Notas para la PresentaciÃ³n
 
 **Puntos Clave a Destacar:**
 
-1. ✅ **Predicciones en Tiempo Real** - Modelo actualiza cada 5 minutos
-2. ✅ **Semaforización Automática** - Sin intervención manual
-3. ✅ **Alarmas Inteligentes** - Diferencia entre crítico y temprano
-4. ✅ **Datos Reales** - Desde ThingSpeak, no dummy data
-5. ✅ **GRU Optimizado** - Más ligero que LSTM, igual precisión
-6. ✅ **Integración Completa** - Backend + Frontend + API
+1. âœ… **Predicciones en Tiempo Real** - Modelo actualiza cada 5 minutos
+2. âœ… **SemaforizaciÃ³n AutomÃ¡tica** - Sin intervenciÃ³n manual
+3. âœ… **Alarmas Inteligentes** - Diferencia entre crÃ­tico y temprano
+4. âœ… **Datos Reales** - Desde ThingSpeak, no dummy data
+5. âœ… **Transformer Optimizado** - Multi-Head Attention para series temporales
+6. âœ… **IntegraciÃ³n Completa** - Backend + Frontend + API
 
-**Demostración Recomendada:**
+**DemostraciÃ³n Recomendada:**
 
-1. Mostrar Dashboard con semaforización verde
-2. Explicar predicciones en gráfico
+1. Mostrar Dashboard con semaforizaciÃ³n verde
+2. Explicar predicciones en grÃ¡fico
 3. Simular alarma (modificar umbral en config)
 4. Mostrar API endpoints en Postman/curl
-5. Explicar arquitectura GRU
+5. Explicar arquitectura Transformer
 
 ---
 
-## 📚 Archivos del Proyecto
+## ðŸ“š Archivos del Proyecto
 
 ```
 AgroTasker_Dashboard/
-├── predictions_model.py          # Modelo GRU
-├── predictions_server.py         # Servidor Flask + Alarmas
-├── dashboard_ia.html             # Dashboard con semáforos
-├── dashboard_realtime_dual.html  # Dashboard dual (datos crudos)
-├── requirements.txt              # Dependencias Python
-├── START_IA.bat                  # Script de inicio automático
-├── README_IA.md                  # Este archivo
-├── models/                       # Modelos entrenados
-│   ├── gru_field1.h5
-│   ├── gru_field2.h5
-│   ├── gru_field3.h5
-│   ├── gru_field4.h5
-│   └── metadata.json
-├── api/                          # APIs ThingSpeak
-└── js/                           # Scripts JavaScript
-    └── app.js
+â”œâ”€â”€ predictions_model.py          # Modelo Transformer
+â”œâ”€â”€ predictions_server.py         # Servidor Flask + Alarmas
+â”œâ”€â”€ dashboard_ia.html             # Dashboard con semÃ¡foros
+â”œâ”€â”€ dashboard_realtime_dual.html  # Dashboard dual (datos crudos)
+â”œâ”€â”€ requirements.txt              # Dependencias Python
+â”œâ”€â”€ START_IA.bat                  # Script de inicio automÃ¡tico
+â”œâ”€â”€ README_IA.md                  # Este archivo
+â”œâ”€â”€ models/                       # Modelos entrenados
+â”‚   â”œâ”€â”€ transformer_field1.h5
+â”‚   â”œâ”€â”€ transformer_field2.h5
+â”‚   â”œâ”€â”€ transformer_field3.h5
+â”‚   â”œâ”€â”€ transformer_field4.h5
+â”‚   â””â”€â”€ metadata.json
+â”œâ”€â”€ api/                          # APIs ThingSpeak
+â””â”€â”€ js/                           # Scripts JavaScript
+    â””â”€â”€ app.js
 ```
 
 ---
 
-## ✅ Checklist de Validación
+## âœ… Checklist de ValidaciÃ³n
 
 - [ ] Python 3.11+ instalado
 - [ ] requirements.txt instalado (`pip install -r requirements.txt`)
 - [ ] TensorFlow funciona (`python -c "import tensorflow; print(tensorflow.__version__)"`)
-- [ ] Modelo entrenado (`ls models/gru_*.h5`)
+- [ ] Modelo entrenado (`ls models/transformer_*.h5`)
 - [ ] Servidor iniciado sin errores
 - [ ] API responde (`curl http://localhost:5000/api/health`)
 - [ ] Dashboard carga en navegador
-- [ ] Semaforización visible
+- [ ] SemaforizaciÃ³n visible
 - [ ] Predicciones mostradas
 
 ---
 
-## 🎯 Conclusión
+## ðŸŽ¯ ConclusiÃ³n
 
 Este sistema demuestra:
 1. **IA Aplicada** a agricultura real
-2. **Predicción Neural** con GRU
+2. **PredicciÃ³n Neural** con Transformer
 3. **Sistema de Alarmas** inteligente
 4. **Interfaz Completa** profesional
-5. **Integración Full-Stack** Python + JS
+5. **IntegraciÃ³n Full-Stack** Python + JS
 
-**Tiempo Total de Configuración:** ~15 minutos  
+**Tiempo Total de ConfiguraciÃ³n:** ~15 minutos  
 **Tiempo de Entrenamiento:** ~3-5 minutos  
-**Preparado para Presentación:** ✅ Listo
+**Preparado para PresentaciÃ³n:** âœ… Listo
 
 ---
 
-**¿Preguntas?** Revisar troubleshooting o ejecutar:
+**Â¿Preguntas?** Revisar troubleshooting o ejecutar:
 ```bash
 python predictions_server.py --debug
 ```
 
 ---
 
-*Documento preparado para presentación académica del proyecto AgroTasker*
+*Documento preparado para presentaciÃ³n acadÃ©mica del proyecto AgroTasker*
+
