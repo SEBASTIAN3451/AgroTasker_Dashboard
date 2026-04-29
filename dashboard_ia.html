@@ -359,7 +359,7 @@
             
             <div class="status-bar">
                 <div class="status-item">
-                    Datos: <span class="status-dot green"></span> En vivo
+                    Datos: <span class="status-dot green"></span> Conectado
                 </div>
                 <div class="status-item">
                     Predicciones: <span class="loading"></span>
@@ -369,6 +369,9 @@
                 </div>
                 <div class="status-item" id="modelStatus">
                     Modelo: Verificando...
+                </div>
+                <div class="status-item" id="dataSourceStatus">
+                    Fuente: Verificando...
                 </div>
             </div>
         </header>
@@ -433,16 +436,16 @@
 
             <div class="panel">
                 <h2>
-                    <span class="panel-icon">⚡</span>
-                    Pronóstico de EC
+                    <span class="panel-icon">🧪</span>
+                    Pronóstico de pH
                 </h2>
                 <div id="forecast-field3" class="forecast-container"></div>
             </div>
 
             <div class="panel">
                 <h2>
-                    <span class="panel-icon">🧪</span>
-                    Pronóstico de pH
+                    <span class="panel-icon">⚡</span>
+                    Pronóstico de EC
                 </h2>
                 <div id="forecast-field4" class="forecast-container"></div>
             </div>
@@ -482,14 +485,14 @@
                     forecast: [27.5, 27.8, 28.0, 27.9, 27.5, 27.0]
                 },
                 field3: {
-                    field_name: 'EC (uS/cm)',
-                    current: 52.00,
-                    forecast: [53.0, 54.2, 55.0, 54.8, 54.0, 53.5]
-                },
-                field4: {
                     field_name: 'pH',
                     current: 6.20,
                     forecast: [6.25, 6.30, 6.35, 6.32, 6.28, 6.25]
+                },
+                field4: {
+                    field_name: 'EC (uS/cm)',
+                    current: 52.00,
+                    forecast: [53.0, 54.2, 55.0, 54.8, 54.0, 53.5]
                 }
             },
             alarms: {
@@ -498,8 +501,8 @@
                 normal: [
                     { field: 'field1', field_name: 'Humedad', status: 'green', current: 68.40, message: '✓ NORMAL: Humedad bajo control' },
                     { field: 'field2', field_name: 'Temperatura', status: 'green', current: 27.20, message: '✓ NORMAL: Temperatura óptima' },
-                    { field: 'field3', field_name: 'EC', status: 'green', current: 52.00, message: '✓ NORMAL: Conductividad normal' },
-                    { field: 'field4', field_name: 'pH', status: 'green', current: 6.20, message: '✓ NORMAL: pH en rango' }
+                    { field: 'field3', field_name: 'pH', status: 'green', current: 6.20, message: '✓ NORMAL: pH en rango' },
+                    { field: 'field4', field_name: 'EC', status: 'green', current: 52.00, message: '✓ NORMAL: Conductividad normal' }
                 ]
             },
             lights: {
@@ -571,6 +574,16 @@
 
         async function updateHealth() {
             const data = await fetchData('/health');
+            const sources = await fetchData('/data-sources');
+            const sourceSummary = sources?.sources
+                ?.map(source => {
+                    const state = source.is_valid ? 'OK' : 'sin dato valido';
+                    const age = typeof source.age_minutes === 'number'
+                        ? `, ${Math.round(source.age_minutes)} min`
+                        : '';
+                    return `${source.name}: ${state}${age}`;
+                })
+                .join('<br>') || 'No disponible';
             
             if (data?.status === 'ok') {
                 const modelsText = data.models.length > 0 
@@ -579,11 +592,15 @@
                 
                 document.getElementById('modelStatus').textContent = 
                     `Modelo: ${modelsText}`;
+                document.getElementById('dataSourceStatus').textContent =
+                    `Fuente: ${data.active_source || 'sin datos validos'}`;
                 
                 document.getElementById('systemStatus').innerHTML = `
                     <p>✓ <strong>Servidor:</strong> Conectado</p>
                     <p>✓ <strong>Modelos IA:</strong> ${modelsText}</p>
                     <p>✓ <strong>Predicciones activas:</strong> ${data.has_predictions ? 'Sí' : 'No'}</p>
+                    <p>✓ <strong>Fuente activa:</strong> ${data.active_source || 'N/A'}</p>
+                    <p>✓ <strong>Fuentes:</strong><br>${sourceSummary}</p>
                     <p>✓ <strong>Última actualización:</strong> ${new Date(data.last_update).toLocaleTimeString()}</p>
                     <p style="font-size: 11px; color: #7f8c8d; margin-top: 10px;">
                         Variables: ${data.models.join(', ') || 'N/A'}
@@ -591,6 +608,7 @@
                 `;
             } else {
                 document.getElementById('modelStatus').textContent = 'Modelo: Demo local';
+                document.getElementById('dataSourceStatus').textContent = 'Fuente: Demo local';
                 document.getElementById('systemStatus').innerHTML = `
                     <p>⚠️ <strong>Servidor:</strong> Modo demo (no conectado a API)</p>
                     <p>Para activar predicciones:</p>

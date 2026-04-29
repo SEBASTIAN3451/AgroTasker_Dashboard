@@ -1,5 +1,5 @@
 {
-  "last_training": "2026-04-28T17:42:41.306215",
+  "last_training": "2026-04-29T11:51:57.469622",
   "architecture": "Transformer",
   "sequence_length": 24,
   "prediction_steps": 6,

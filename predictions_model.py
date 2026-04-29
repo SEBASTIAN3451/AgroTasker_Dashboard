@@ -23,6 +23,8 @@ warnings.filterwarnings('ignore')
 # Configuración
 THINGSPEAK_CHANNEL = 2791076
 THINGSPEAK_API_KEY = "S6P4MH7ZT48FQCAD"  # Read API key
+SECONDARY_THINGSPEAK_CHANNEL = 3341502
+SECONDARY_THINGSPEAK_API_KEY = "CUCMUN5YZ3DAS3NX"
 SEQUENCE_LENGTH = 24  # Usar últimas 24 mediciones para predecir
 PREDICTION_STEPS = 6  # Predecir 6 pasos adelante (próximas 1.5 horas si cada 15 min)
 MODEL_DIR = "./models"
@@ -31,8 +33,8 @@ MODEL_DIR = "./models"
 VARIABLES = {
     'field1': {'name': 'Humedad Suelo (%)', 'min': 0, 'max': 100},
     'field2': {'name': 'Temperatura (°C)', 'min': -5, 'max': 50},
-    'field3': {'name': 'EC (uS/cm)', 'min': 0, 'max': 5000},
-    'field4': {'name': 'pH', 'min': 4, 'max': 9},
+    'field3': {'name': 'pH', 'min': 4, 'max': 9},
+    'field4': {'name': 'EC (uS/cm)', 'min': 0, 'max': 5000},
 }
 
 class TransformerPredictor:
@@ -41,15 +43,38 @@ class TransformerPredictor:
         self.scalers = {}
         self.models = {}
         self.last_training = None
+        self.last_source = None
         
     def fetch_thingspeak_data(self, results=480):
         """
         Descarga datos históricos de ThingSpeak
         results=480: aproximadamente 5 días (1 lectura cada 15 min)
         """
-        url = f"https://api.thingspeak.com/channels/{THINGSPEAK_CHANNEL}/feeds.json"
+        sources = [
+            {
+                'name': 'ThingSpeak principal',
+                'channel': THINGSPEAK_CHANNEL,
+                'api_key': THINGSPEAK_API_KEY,
+            },
+            {
+                'name': 'ThingSpeak secundario',
+                'channel': SECONDARY_THINGSPEAK_CHANNEL,
+                'api_key': SECONDARY_THINGSPEAK_API_KEY,
+            },
+        ]
+
+        for source in sources:
+            df = self._fetch_source(source, results)
+            if df is not None and len(df) >= SEQUENCE_LENGTH:
+                self.last_source = source['name']
+                return df
+
+        return None
+
+    def _fetch_source(self, source, results):
+        url = f"https://api.thingspeak.com/channels/{source['channel']}/feeds.json"
         params = {
-            'api_key': THINGSPEAK_API_KEY,
+            'api_key': source['api_key'],
             'results': results,
             'fields': ','.join(list(VARIABLES.keys()))
         }
@@ -69,15 +94,31 @@ class TransformerPredictor:
             for field in VARIABLES.keys():
                 df[field] = pd.to_numeric(df[field], errors='coerce')
             
-            # Eliminar filas con NaN
+            # Eliminar filas con NaN y lecturas centinela/invalidas.
             df = df.dropna(subset=list(VARIABLES.keys()))
+            df = self._filter_valid_rows(df)
             
-            print(f"[OK] Descargados {len(df)} registros de ThingSpeak")
+            print(f"[OK] Descargados {len(df)} registros validos de {source['name']}")
             return df.sort_values('created_at').reset_index(drop=True)
             
         except Exception as e:
-            print(f"[ERROR] Error descargando datos: {e}")
+            print(f"[ERROR] Error descargando datos de {source['name']}: {e}")
             return None
+
+    def _filter_valid_rows(self, df):
+        if df.empty:
+            return df
+
+        valid = (
+            (df['field1'] > 0) &
+            (df['field1'] <= 100) &
+            (df['field2'] > -5) &
+            (df['field2'] <= 60) &
+            (df['field3'] >= 3) &
+            (df['field3'] <= 10) &
+            (df['field4'] > 0)
+        )
+        return df.loc[valid].copy()
 
     def prepare_data(self, df):
         """

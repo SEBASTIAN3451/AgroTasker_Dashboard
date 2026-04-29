@@ -8,8 +8,17 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import json
 import os
-from datetime import datetime
-from predictions_model import TransformerPredictor, train_model, VARIABLES
+from datetime import datetime, timezone
+import requests
+from predictions_model import (
+    TransformerPredictor,
+    train_model,
+    VARIABLES,
+    THINGSPEAK_CHANNEL,
+    THINGSPEAK_API_KEY,
+    SECONDARY_THINGSPEAK_CHANNEL,
+    SECONDARY_THINGSPEAK_API_KEY,
+)
 import threading
 import time
 
@@ -21,14 +30,30 @@ predictor = TransformerPredictor()
 ALARM_CONFIG = {
     'field1': {'min': 30, 'max': 90, 'early_min': 40, 'early_max': 80},  # Humedad
     'field2': {'min': 10, 'max': 35, 'early_min': 15, 'early_max': 30},   # Temperatura
-    'field3': {'min': 200, 'max': 2000, 'early_min': 300, 'early_max': 1800},  # EC
-    'field4': {'min': 5.5, 'max': 7.5, 'early_min': 5.8, 'early_max': 7.2},  # pH
+    'field3': {'min': 5.5, 'max': 7.5, 'early_min': 5.8, 'early_max': 7.2},  # pH
+    'field4': {'min': 0, 'max': 5000, 'early_min': 50, 'early_max': 4500},  # EC
 }
 
 # Almacenar última predicción en memoria
 last_predictions = None
 last_alarms = None
 update_timestamp = None
+active_source = None
+
+DATA_SOURCES = [
+    {
+        'id': 'primary',
+        'name': 'ThingSpeak principal',
+        'channel': THINGSPEAK_CHANNEL,
+        'api_key': THINGSPEAK_API_KEY,
+    },
+    {
+        'id': 'secondary',
+        'name': 'ThingSpeak secundario',
+        'channel': SECONDARY_THINGSPEAK_CHANNEL,
+        'api_key': SECONDARY_THINGSPEAK_API_KEY,
+    },
+]
 
 def get_traffic_light(current, forecast, min_th, early_min, early_max, max_th):
     """
@@ -106,11 +131,111 @@ def generate_alarms(predictions):
     
     return alarms
 
+def fetch_source_snapshot(source, results=1):
+    """Obtiene la ultima lectura cruda de una fuente ThingSpeak."""
+    try:
+        response = requests.get(
+            f"https://api.thingspeak.com/channels/{source['channel']}/feeds.json",
+            params={'api_key': source['api_key'], 'results': results},
+            timeout=12
+        )
+        response.raise_for_status()
+        payload = response.json()
+        feeds = payload.get('feeds', [])
+        latest = feeds[-1] if feeds else None
+        return {
+            'id': source['id'],
+            'name': source['name'],
+            'channel': source['channel'],
+            'ok': bool(latest),
+            'latest': latest,
+            'is_valid': is_valid_feed(latest),
+            'age_minutes': get_age_minutes(latest.get('created_at')) if latest else None,
+            'source': 'thingspeak'
+        }
+    except Exception as exc:
+        return {
+            'id': source['id'],
+            'name': source['name'],
+            'channel': source['channel'],
+            'ok': False,
+            'latest': None,
+            'is_valid': False,
+            'age_minutes': None,
+            'error': str(exc),
+            'source': 'thingspeak'
+        }
+
+def fetch_dropbox_snapshot():
+    """Obtiene estado resumido del historico Dropbox usado por dashboards duales."""
+    try:
+        from server_production import ProxyHandler
+        handler = object.__new__(ProxyHandler)
+        payload = handler.get_dropbox_series_data()
+        series = payload.get('series', []) if isinstance(payload, dict) else []
+        latest = series[-1] if series else None
+
+        return {
+            'id': 'dropbox',
+            'name': 'Dropbox historico',
+            'channel': None,
+            'ok': bool(series),
+            'is_valid': bool(latest),
+            'latest': latest,
+            'records': len(series),
+            'age_minutes': get_age_minutes(latest.get('created_at')) if latest else None,
+            'source': 'dropbox',
+            'meta': payload.get('meta', {}) if isinstance(payload, dict) else {}
+        }
+    except Exception as exc:
+        return {
+            'id': 'dropbox',
+            'name': 'Dropbox historico',
+            'channel': None,
+            'ok': False,
+            'is_valid': False,
+            'latest': None,
+            'records': 0,
+            'age_minutes': None,
+            'source': 'dropbox',
+            'error': str(exc)
+        }
+
+def is_valid_feed(feed):
+    if not feed:
+        return False
+
+    try:
+        humidity = float(feed.get('field1') or 0)
+        temperature = float(feed.get('field2') or -99)
+        ph = float(feed.get('field3') or 0)
+        ec = float(feed.get('field4') or 0)
+    except (TypeError, ValueError):
+        return False
+
+    return (
+        0 < humidity <= 100 and
+        -5 < temperature <= 60 and
+        3 <= ph <= 10 and
+        ec > 0
+    )
+
+def get_age_minutes(created_at):
+    if not created_at:
+        return None
+
+    try:
+        normalized = created_at.replace('Z', '+00:00')
+        created = datetime.fromisoformat(normalized)
+        return round((datetime.now(timezone.utc) - created).total_seconds() / 60, 1)
+    except ValueError:
+        return None
+
 def update_predictions_background():
     """
     Actualiza predicciones cada 5 minutos en background
     """
-    global last_predictions, last_alarms, update_timestamp
+    global last_predictions, last_alarms, update_timestamp, active_source
     
     while True:
         try:
@@ -123,6 +248,7 @@ def update_predictions_background():
                 last_predictions = predictor.predict_next(df)
                 last_alarms = generate_alarms(last_predictions)
                 update_timestamp = datetime.now().isoformat()
+                active_source = predictor.last_source
                 print("[PREDICCIONES] OK Predicciones actualizadas")
             
         except Exception as e:
@@ -133,7 +259,7 @@ def init_predictions():
     """
     Carga modelos e inicializa predicciones
     """
-    global last_predictions, last_alarms, update_timestamp
+    global last_predictions, last_alarms, update_timestamp, active_source
     
     try:
         print("[STARTUP] Cargando modelos entrenados...")
@@ -148,6 +274,7 @@ def init_predictions():
                 if last_predictions:
                     last_alarms = generate_alarms(last_predictions)
                     update_timestamp = datetime.now().isoformat()
+                    active_source = predictor.last_source
                     print("[STARTUP] OK Predicciones iniciales generadas")
                 else:
                     print("[STARTUP] WARN Modelos cargados, pero no se generaron predicciones")
@@ -173,6 +300,7 @@ def get_predictions_api():
         'status': 'success',
         'data': last_predictions,
         'timestamp': update_timestamp,
+        'source': active_source,
         'next_update': None  # Cliente puede calcular
     })
 
@@ -193,7 +321,8 @@ def get_alarms_api():
     return jsonify({
         'status': 'success',
         'alarms': last_alarms,
-        'timestamp': update_timestamp
+        'timestamp': update_timestamp,
+        'source': active_source
     })
 
 @app.route('/api/traffic-light', methods=['GET'])
@@ -213,7 +342,8 @@ def get_traffic_light_api():
     return jsonify({
         'status': 'success',
         'lights': lights,
-        'timestamp': update_timestamp
+        'timestamp': update_timestamp,
+        'source': active_source
     })
 
 @app.route('/api/health', methods=['GET'])
@@ -227,7 +357,20 @@ def health_check():
         'models_loaded': models_loaded,
         'has_predictions': has_predictions,
         'last_update': update_timestamp,
+        'active_source': active_source,
         'models': list(predictor.models.keys())
+    })
+
+@app.route('/api/data-sources', methods=['GET'])
+def data_sources_api():
+    """GET /api/data-sources - Estado de las fuentes ThingSpeak usadas."""
+    sources = [fetch_source_snapshot(source) for source in DATA_SOURCES]
+    sources.append(fetch_dropbox_snapshot())
+    return jsonify({
+        'status': 'success',
+        'active_source': active_source,
+        'sources': sources,
+        'timestamp': datetime.now().isoformat()
     })
 
 @app.route('/api/train', methods=['POST'])
@@ -238,7 +381,7 @@ def train_api():
         
         # Ejecutar en thread para no bloquear
         def train_background():
-            global predictor
+            global predictor, active_source
             predictor = train_model()
             if predictor:
                 df = predictor.fetch_thingspeak_data(results=480)
@@ -246,6 +389,7 @@ def train_api():
                 last_predictions = predictor.predict_next(df)
                 last_alarms = generate_alarms(last_predictions)
                 update_timestamp = datetime.now().isoformat()
+                active_source = predictor.last_source
         
         thread = threading.Thread(target=train_background, daemon=True)
         thread.start()
