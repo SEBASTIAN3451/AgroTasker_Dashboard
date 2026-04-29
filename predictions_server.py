@@ -132,8 +132,8 @@ def generate_alarms(predictions):
     
     return alarms
 
-def fetch_source_snapshot(source, results=1):
-    """Obtiene la ultima lectura cruda de una fuente ThingSpeak."""
+def fetch_source_snapshot(source, results=8000):
+    """Obtiene lecturas de ThingSpeak y selecciona la ultima valida disponible."""
     try:
         response = requests.get(
             f"https://api.thingspeak.com/channels/{source['channel']}/feeds.json",
@@ -144,14 +144,20 @@ def fetch_source_snapshot(source, results=1):
         payload = response.json()
         feeds = payload.get('feeds', [])
         latest = feeds[-1] if feeds else None
+        latest_valid = next((feed for feed in reversed(feeds) if is_valid_feed(feed)), None)
+        selected = latest_valid or latest
         return {
             'id': source['id'],
             'name': source['name'],
             'channel': source['channel'],
             'ok': bool(latest),
-            'latest': latest,
-            'is_valid': is_valid_feed(latest),
-            'age_minutes': get_age_minutes(latest.get('created_at')) if latest else None,
+            'latest': selected,
+            'latest_raw': latest,
+            'is_valid': latest_valid is not None,
+            'age_minutes': get_age_minutes(selected.get('created_at')) if selected else None,
+            'raw_age_minutes': get_age_minutes(latest.get('created_at')) if latest else None,
+            'valid_records_checked': len(feeds),
+            'selected_reason': 'ultima lectura valida encontrada' if latest_valid else 'sin lecturas validas en historial',
             'source': 'thingspeak'
         }
     except Exception as exc:

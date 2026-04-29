@@ -1005,8 +1005,8 @@
             const tsClass = ts?.is_valid ? 'ok' : 'bad';
             const dropboxClass = primary.source === 'dropbox' ? 'warn' : 'ok';
             const tsDetail = ts?.is_valid
-                ? `Canal ${ts.channel}, lectura válida.`
-                : `Canal ${ts?.channel || 'N/A'}, conectado pero inválido: ${formatRawFields(ts?.reading?.raw)}.`;
+                ? `Canal ${ts.channel}, usando última lectura válida encontrada.`
+                : `Canal ${ts?.channel || 'N/A'}, sin lecturas válidas en el historial revisado. Última cruda: ${formatRawFields(ts?.reading?.raw)}.`;
             const dropboxDetail = dropbox?.is_valid
                 ? `${dropbox.records || 0} registros; usado ${primary.source === 'dropbox' ? 'como fuente visible' : 'como respaldo'}.`
                 : 'Sin respaldo disponible.';
