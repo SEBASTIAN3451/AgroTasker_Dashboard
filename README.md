@@ -1,282 +1,188 @@
-# AgroTasker Dashboard - Sistema IA con Transformer
+# AgroTasker Dashboard 🌱
 
-![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
-![Python](https://img.shields.io/badge/Python-3.11-blue)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-2.14-orange)
-![License](https://img.shields.io/badge/License-MIT-green)
+> Dashboard web para monitoreo y análisis de variables agrícolas, con integración de datos IoT, alertas y predicciones mediante modelos Transformer.
 
-> Sistema completo de monitoreo agricola con predicciones de redes neuronales Transformer, semaforizacion inteligente y alarmas automaticas.
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.0-000000?logo=flask&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.14-FF6F00?logo=tensorflow&logoColor=white)
+![ThingSpeak](https://img.shields.io/badge/ThingSpeak-IoT-0B6E99)
+![Status](https://img.shields.io/badge/Status-Acad%C3%A9mico-blue)
 
----
+## 📌 Descripción
 
-## Contenido del Repositorio
+**AgroTasker** es un proyecto académico orientado al monitoreo de variables de interés agrícola. El dashboard permite visualizar datos recibidos desde ThingSpeak, consultar el estado de las variables, generar alertas mediante un sistema de semaforización y realizar predicciones de series temporales.
 
-### Componentes IA
+El repositorio contiene la parte de software y análisis del sistema, incluyendo el servidor web, el dashboard y los modelos de predicción.
 
-- **`predictions_model.py`** - Modelo Transformer con Multi-Head Attention
-  - Descarga datos historicos de ThingSpeak.
-  - Entrena 4 modelos independientes, uno por variable agricola.
-  - Usa secuencias de 24 mediciones para predecir 6 pasos adelante (~1.5 horas).
-  - Guarda modelos en `./models/transformer_*.h5`.
-  - Guarda normalizadores en `./models/scalers.pkl`.
+## ✨ Funcionalidades
 
-- **`predictions_server.py`** - Servidor Flask con API REST
-  - Puerto 5000.
-  - Sirve el dashboard principal en `http://localhost:5000`.
-  - Endpoints: `/api/predictions`, `/api/alarms`, `/api/traffic-light`, `/api/health`.
-  - Sistema automatico de alarmas tempranas y criticas.
-  - Semaforizacion en tiempo real: verde, amarillo y rojo.
+- 📊 Visualización de datos agrícolas.
+- 🌱 Monitoreo de humedad del suelo, temperatura, conductividad eléctrica y pH.
+- 🚦 Semaforización según umbrales configurados.
+- 🔔 Alertas tempranas y críticas.
+- 🤖 Predicción de valores futuros mediante modelos Transformer.
+- 📈 Visualización de predicciones.
+- 🌐 API REST desarrollada con Flask.
+- 💚 Endpoint de salud para comprobar el estado del servidor y los modelos.
+- 🔄 Integración con ThingSpeak.
 
-### Dashboards
+## 🧠 Modelo de predicción
 
-- **`dashboard_ia.html`** - Principal con IA
-  - Semaforizacion visual completa.
-  - Centro de alertas y alarmas.
-  - Mediciones en vivo.
-  - Predicciones IA con graficos.
-  - Pronostico de 1.5 horas.
+El sistema utiliza una arquitectura basada en **Transformer con Multi-Head Attention** para trabajar con series temporales.
 
-- **`dashboard_realtime_dual.html`** - Dual ThingSpeak
-  - Datos crudos de dos canales.
-  - Sin predicciones neuronales.
+Flujo general:
 
-### Paquete ZIP
+```text
+Datos históricos
+      ↓
+Normalización
+      ↓
+Secuencias temporales
+      ↓
+Transformer
+      ↓
+Predicciones futuras
+      ↓
+Dashboard + alertas
+```
 
-- **`AgroTasker_IA_Transformer.zip`**
-  - Paquete con los archivos principales del sistema IA.
-  - Incluye dashboard, servidor, modelo, documentacion, script de arranque, dependencias y modelos Transformer entrenados.
+La implementación disponible utiliza secuencias históricas y genera múltiples pasos futuros para las variables configuradas.
 
----
+## 🏗️ Arquitectura
 
-## Estructura Principal
+```text
+┌──────────────────┐
+│ Sensores / IoT   │
+└────────┬─────────┘
+         ↓
+┌──────────────────┐
+│    ThingSpeak    │
+└────────┬─────────┘
+         ↓
+┌──────────────────┐
+│ Modelo Transformer│
+└────────┬─────────┘
+         ↓
+┌──────────────────┐
+│   Flask API      │
+└────────┬─────────┘
+         ↓
+┌──────────────────┐
+│ Dashboard Web    │
+└──────────────────┘
+```
+
+## 📁 Estructura
 
 ```text
 AgroTasker_Dashboard/
-|-- predictions_model.py          # Modelo Transformer
-|-- predictions_server.py         # Servidor Flask + API + alarmas
-|-- dashboard_ia.html             # Dashboard IA principal
-|-- README.md                     # Resumen del repositorio
-|-- README_IA.md                  # Documentacion tecnica y academica
-|-- START_IA.bat                  # Arranque automatico en Windows
-|-- requirements.txt              # Dependencias Python
-|-- AgroTasker_IA_Transformer.zip # Paquete del sistema IA
-|-- models/
-|   |-- transformer_field1.h5     # Modelo humedad suelo
-|   |-- transformer_field2.h5     # Modelo temperatura
-|   |-- transformer_field3.h5     # Modelo EC
-|   |-- transformer_field4.h5     # Modelo pH
-|   |-- scalers.pkl               # Normalizadores MinMax
-|   |-- metadata.json             # Metadatos de entrenamiento
-|-- js/
-|-- css/
-|-- api/
+├── predictions_model.py
+├── predictions_server.py
+├── dashboard_ia.html
+├── README.md
+├── README_IA.md
+├── START_IA.bat
+├── requirements.txt
+├── models/
+│   ├── transformer_field1.h5
+│   ├── transformer_field2.h5
+│   ├── transformer_field3.h5
+│   ├── transformer_field4.h5
+│   ├── scalers.pkl
+│   └── metadata.json
+├── js/
+├── css/
+└── api/
 ```
 
----
+## 🚀 Instalación
 
-## Inicio Rapido
+### Requisitos
 
-### Opcion 1: Script Automatico
+- Python 3.11
+- Git
+- Dependencias indicadas en `requirements.txt`
 
-```bat
-cd C:\Users\SEBASTIAN\AgroTasker_Dashboard
-START_IA.bat
-```
-
-El script:
-
-- Activa o crea el entorno virtual.
-- Instala dependencias.
-- Verifica modelos Transformer entrenados.
-- Entrena automaticamente si faltan modelos.
-- Inicia Flask en el puerto 5000.
-- Abre el dashboard en `http://localhost:5000`.
-
-### Opcion 2: Manual
+### 1. Clonar
 
 ```bash
+git clone https://github.com/SEBASTIAN3451/AgroTasker_Dashboard.git
+cd AgroTasker_Dashboard
+```
+
+### 2. Instalar dependencias
+
+Se recomienda utilizar un entorno virtual:
+
+```bash
+python -m venv .venv
+```
+
+Windows:
+
+```bash
+.venv\Scripts\activate
 pip install -r requirements.txt
-python predictions_model.py train
+```
+
+### 3. Ejecutar
+
+```bash
 python predictions_server.py
 ```
 
-Luego abre:
+Después abre:
 
 ```text
 http://localhost:5000
 ```
 
----
-
-## Arquitectura del Modelo
-
-### Transformer con Multi-Head Attention
-
-```text
-Entrada: 24 valores historicos
-    |
-MultiHeadAttention(4 heads)
-    |
-Dropout + LayerNormalization
-    |
-Feed Forward Network
-    |
-Dropout + LayerNormalization
-    |
-MultiHeadAttention(4 heads)
-    |
-Flatten + Dense(64) + Dense(32)
-    |
-Salida: 6 predicciones futuras
-```
-
-### Datos de Entrenamiento
-
-- **Fuente:** ThingSpeak canal `2791076`.
-- **Historial:** 480 registros aproximadamente.
-- **Frecuencia:** 1 lectura cada 15 minutos.
-- **Variables:** humedad del suelo, temperatura, EC y pH.
-- **Horizonte:** 6 pasos futuros, equivalente a ~1.5 horas.
-
-### Ventajas del Transformer
-
-| Aspecto | Transformer |
-|---|---|
-| Contexto temporal | Captura relaciones entre mediciones lejanas |
-| Paralelizacion | Mejor que modelos recurrentes clasicos |
-| Arquitectura | Multi-Head Attention + Feed Forward |
-| Uso en AgroTasker | Prediccion multi-paso por variable |
-
----
-
-## API REST
-
-| Metodo | Endpoint | Descripcion |
-|---|---|---|
-| GET | `/` | Dashboard IA |
-| GET | `/api/predictions` | Predicciones actuales |
-| GET | `/api/alarms` | Alarmas criticas, tempranas y normales |
-| GET | `/api/traffic-light` | Estado de semaforo por variable |
-| GET | `/api/health` | Estado del servidor y modelos cargados |
-| GET | `/api/variables` | Variables monitoreadas |
-| GET/PUT | `/api/config/alarms` | Configuracion de umbrales |
-| POST | `/api/train` | Entrenamiento en segundo plano |
-
----
-
-## Sistema de Alarmas
-
-### Verde
-
-La medicion actual y el pronostico estan dentro del rango seguro.
-
-### Amarillo
-
-La medicion aun puede estar en rango, pero el pronostico muestra tendencia preocupante o cercania a un umbral.
-
-### Rojo
-
-La medicion actual esta fuera de rango o el pronostico supera limites criticos.
-
----
-
-## Archivos de IA
-
-```text
-models/
-|-- transformer_field1.h5
-|-- transformer_field2.h5
-|-- transformer_field3.h5
-|-- transformer_field4.h5
-|-- scalers.pkl
-|-- metadata.json
-```
-
-Los archivos `.h5` contienen los modelos Transformer entrenados. `scalers.pkl` guarda los normalizadores usados para convertir datos reales a escala 0-1 y volver a unidades originales durante la prediccion.
-
----
-
-## Validacion
-
-Comprobaciones realizadas:
-
-```bash
-python -m py_compile predictions_model.py predictions_server.py
-python predictions_model.py
-```
-
-Tambien se valido:
-
-- Carga de 4 modelos Transformer.
-- Carga de 4 scalers.
-- Descarga de 480 registros desde ThingSpeak.
-- Generacion de predicciones para `field1`, `field2`, `field3` y `field4`.
-- Flask sirviendo el dashboard en `/`.
-- `/api/health` respondiendo con `models_loaded: 4`.
-
----
-
-## Requisitos
-
-```text
-flask==3.0.0
-flask-socketio==5.3.6
-flask-cors==4.0.0
-python-dotenv==1.0.0
-paho-mqtt==2.1.0
-tensorflow==2.14.0
-numpy==1.24.3
-pandas==2.0.3
-scikit-learn==1.3.0
-requests==2.31.0
-```
-
----
-
-## Troubleshooting
-
-### `localhost:5000` no abre
-
-Ejecuta:
-
-```bash
-python predictions_server.py
-```
-
-### No hay predicciones
-
-Entrena o verifica los modelos:
+Si necesitas entrenar nuevamente los modelos:
 
 ```bash
 python predictions_model.py train
 ```
 
-### Puerto 5000 ocupado
+## 🔌 API
 
-```bat
-netstat -ano | findstr :5000
-taskkill /PID <PID> /F
-```
+| Método | Endpoint | Función |
+|---|---|---|
+| GET | `/` | Dashboard |
+| GET | `/api/predictions` | Predicciones |
+| GET | `/api/alarms` | Alertas |
+| GET | `/api/traffic-light` | Estado por variable |
+| GET | `/api/health` | Estado del sistema |
+| GET | `/api/variables` | Variables monitoreadas |
+| GET/PUT | `/api/config/alarms` | Configuración de umbrales |
+| POST | `/api/train` | Iniciar entrenamiento |
+
+## 🛠️ Tecnologías
+
+- **Python**
+- **Flask**
+- **TensorFlow / Keras**
+- **NumPy**
+- **Pandas**
+- **Scikit-learn**
+- **HTML / CSS / JavaScript**
+- **ThingSpeak**
+- **Transformer / Multi-Head Attention**
+
+## 🎓 Contexto
+
+AgroTasker forma parte de un proyecto académico de **Ingeniería Electrónica**, con enfoque en IoT, monitoreo de datos agrícolas, respaldo de información y análisis mediante software.
+
+## 👨‍💻 Autor
+
+**Sebastian Lara**  
+Ingeniería Electrónica · IoT · Software · Data & AI
+
+- GitHub: [@SEBASTIAN3451](https://github.com/SEBASTIAN3451)
+
+## 📄 Licencia
+
+Este repositorio utiliza la licencia MIT cuando está indicada en el proyecto.
 
 ---
 
-## Enlaces
-
-- **GitHub:** https://github.com/SEBASTIAN3451/AgroTasker_Dashboard
-- **ThingSpeak:** https://thingspeak.com/channels/2791076
-- **TensorFlow:** https://www.tensorflow.org/
-
----
-
-## Autor
-
-**Sebastian Dev** - Proyecto academico AgroTasker 2026
-
----
-
-**Ultima actualizacion:** Abril 29, 2026  
-**Estado:** Produccion lista con red neuronal Transformer
-
----
-
-*Sistema de IA para monitoreo agricola inteligente con predicciones neuronales Transformer.*
+⭐ Proyecto académico enfocado en integrar electrónica, IoT, software y análisis de datos para aplicaciones agrícolas.
